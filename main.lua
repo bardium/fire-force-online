@@ -507,6 +507,7 @@ Groups.Main:AddToggle('AutoKeysDefense', { Text = 'Auto press keys', Default = f
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
 addRichText(Groups.Credits:AddLabel('<font color="#0bff7e">Goose Better</font> - script'))
+addRichText(Groups.Credits:AddLabel('<font color="#ff0000">DeityVarn</font> - script helper'))
 addRichText(Groups.Credits:AddLabel('<font color="#3da5ff">wally & Inori</font> - ui library'))
 
 Groups.UISettings = Tabs.UISettings:AddRightGroupbox('UI Settings')
