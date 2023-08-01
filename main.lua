@@ -255,8 +255,13 @@ do
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
 					local closestMob = alive:FindFirstChild(tostring(Options.TargetMob.Value))
 					if closestMob ~= nil and closestMob:IsDescendantOf(alive) and closestMob:FindFirstChildOfClass('Humanoid') and typeof(closestMob:GetPivot()) == 'CFrame' and typeof(closestMob:GetExtentsSize()) == 'Vector3' and closestMob:FindFirstChildWhichIsA('BasePart') then
-						local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-						client.Character:PivotTo(CFrame.new(closestMob:GetPivot().Position + offset))
+						if closestMob:FindFirstChild('HumanoidRootPart') then
+							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+							client.Character:PivotTo(CFrame.new(closestMob.HumanoidRootPart:GetPivot().Position + offset))
+						else
+							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+							client.Character:PivotTo(CFrame.new(closestMob:GetPivot().Position + offset))
+						end
 					end
 				end
 			end
@@ -334,18 +339,18 @@ local function GetAliveNPCsString()
 end;
 
 Groups.Main:AddToggle('TeleportToMobs', { Text = 'Teleport to mobs', Default = false } )
+local aliveNPCs = GetAliveNPCsString()
 Groups.Main:AddDropdown('TargetMob', {
 	Text = 'Target mob',
 	AllowNull = true,
 	Compact = false,
-	Values = GetAliveNPCsString(),
-	Default = GetAliveNPCsString()[1]
+	Values = aliveNPCs,
+	Default = aliveNPCs[1]
 })
 Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = 2, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs' })
 Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs' })
 Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs' })
 
-local aliveNPCs = GetAliveNPCsString()
 Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Text = 'Teleport to moving npc',
 	AllowNull = true,
@@ -354,6 +359,13 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Default = aliveNPCs[1],
 	Callback = function(targetAliveNPC)
 		if alive:FindFirstChild(tostring(targetAliveNPC)) and alive[tostring(targetAliveNPC)]:IsA('Model') then
+			if alive:FindFirstChild(tostring(targetAliveNPC)):FindFirstChild('HumanoidRootPart') then
+				local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+				client.Character:PivotTo(alive[tostring(targetAliveNPC)].HumanoidRootPart:GetPivot() * CFrame.new(0, 2, 0))
+			else
+				local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+				client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
+			end
 			client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
 		end
 	end,
