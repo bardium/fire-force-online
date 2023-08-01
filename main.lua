@@ -278,8 +278,8 @@ do
 		while true do
 			task.wait()
 			if ((Toggles.AutoKeysDefense) and (Toggles.AutoKeysDefense.Value)) then
-				if client:FindFirstChildOfClass('PlayerGui') and client:FindFirstChildOfClass('PlayerGui'):FindFirstChild('TrainingGui') and client:FindFirstChildOfClass('PlayerGui').TrainingGui:FindFirstChild('DefenseTraining') and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Value == true and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Pause.Value == false and events:FindFirstChild('TrainingEvent') then
-					if client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining and TrainingGUI:FindFirstChild(KeyToPress) then
+				if client:FindFirstChildOfClass('PlayerGui') and client:FindFirstChildOfClass('PlayerGui'):FindFirstChild('TrainingGui') and client:FindFirstChildOfClass('PlayerGui').TrainingGui:FindFirstChild('DefenseTraining') and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Value == true and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:WaitForChild('Pause').Value == false and events:FindFirstChild('TrainingEvent') then
+					if client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:FindFirstChild('CurrentKeyToPress') and type(client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value) == 'number' and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:FindFirstChild(client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value) then
 						local KeyToPress = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value
 						local TrainingGUI = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining
 						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
