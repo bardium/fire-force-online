@@ -371,9 +371,9 @@ Groups.Main:AddDropdown('TargetMobs', {
 	Values = aliveNPCs,
 	Default = aliveNPCs[1]
 })
-Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = 2, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs' })
-Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs' })
-Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs' })
+Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = 2, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
+Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
+Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
 
 Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Text = 'Teleport to moving npc',
@@ -505,14 +505,9 @@ Groups.Main:AddButton('Refresh markers', function()
 end)
 
 Groups.Main:AddToggle('AutoKeysDefense', { Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
-Groups.Main:AddSlider('PressDelay',   { Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training' })
+Groups.Main:AddSlider('PressDelay',   { Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training.' })
 
-local DependencySlider = Groups.Main:AddDependencyBox();
-addRichText(DependencySlider:AddLabel('<font color="#ff430a">Delay less than 0.3 can make you miss buttons.</font>', true))
-
-DependencySlider:SetupDependencies({
-	{ Options.PressDelay, -1 }
-});
+addRichText(Groups.Main:AddLabel('<font color="#ff430a">Press delay less than 0.3 can make you miss buttons.</font>', true))
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
