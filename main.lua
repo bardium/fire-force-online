@@ -279,12 +279,14 @@ do
 			task.wait()
 			if ((Toggles.AutoKeysDefense) and (Toggles.AutoKeysDefense.Value)) then
 				if client:FindFirstChildOfClass('PlayerGui') and client:FindFirstChildOfClass('PlayerGui'):FindFirstChild('TrainingGui') and client:FindFirstChildOfClass('PlayerGui').TrainingGui:FindFirstChild('DefenseTraining') and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Value == true and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Pause.Value == false and events:FindFirstChild('TrainingEvent') then
-					local KeyToPress = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value
-					local TrainingGUI = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining
-					local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
-			
-					events.TrainingEvent:FireServer('Defense', keyToPress)
-					task.wait(.2)
+					if client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining and TrainingGUI:FindFirstChild(KeyToPress) then
+						local KeyToPress = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value
+						local TrainingGUI = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining
+						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
+				
+						events.TrainingEvent:FireServer('Defense', keyToPress)
+						task.wait(.2)
+					end
 				end
 			end
 		end
