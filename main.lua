@@ -208,7 +208,7 @@ do
 							end
 						end
 					end
-					print(closestMob, typeof(closestMob), events:FindFirstChild('CombatEvent'))
+					
 					if typeof(closestMob) == 'Instance' then
 						local weapon = client.Character:FindFirstChild('FistCombat')
 						if client.Character:FindFirstChildOfClass('Tool') and client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript') then
