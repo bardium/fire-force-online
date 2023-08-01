@@ -1,5 +1,5 @@
 return {
-	version = '1.00',
+	version = '1.01',
 	updated = '7/31/2023',
-	message = 'release!'
+	message = 'kill aura + teleport to mobs'
 }
