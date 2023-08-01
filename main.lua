@@ -254,7 +254,7 @@ do
 			task.wait()
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
-					local closestMob = alive:FindFirstChild(tostring(Options.TargetMob.Value))
+					local closestMob = alive:FindFirstChild(tostring(Options.TargetMobs.Value))
 					if closestMob ~= nil and closestMob:IsDescendantOf(alive) and closestMob:FindFirstChildOfClass('Humanoid') and typeof(closestMob:GetPivot()) == 'CFrame' and typeof(closestMob:GetExtentsSize()) == 'Vector3' and closestMob:FindFirstChildWhichIsA('BasePart') then
 						if closestMob:FindFirstChild('HumanoidRootPart') then
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
@@ -285,7 +285,7 @@ do
 						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
 				
 						events.TrainingEvent:FireServer('Defense', keyToPress)
-						task.wait(.2)
+						task.wait(Options.PressDelay.Value)
 					end
 				end
 			end
@@ -364,7 +364,7 @@ end;
 
 Groups.Main:AddToggle('TeleportToMobs', { Text = 'Teleport to mobs', Default = false } )
 local aliveNPCs = GetAliveNPCsString()
-Groups.Main:AddDropdown('TargetMob', {
+Groups.Main:AddDropdown('TargetMobs', {
 	Text = 'Target mob',
 	AllowNull = true,
 	Compact = false,
@@ -394,8 +394,8 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 })
 
 local function OnAliveNPCsChanged()
-	if Options.TargetMob ~= nil then
-		Options.TargetMob:SetValues(GetAliveNPCsString());
+	if Options.TargetMobs ~= nil and type(Options.TargetMobs.SetValues) == 'function' then
+		Options.TargetMobs:SetValues(GetAliveNPCsString());
 	end
 	Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
 end;
@@ -505,6 +505,14 @@ Groups.Main:AddButton('Refresh markers', function()
 end)
 
 Groups.Main:AddToggle('AutoKeysDefense', { Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
+Groups.Main:AddSlider('PressDelay',   { Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training' })
+
+local DependencySlider = Groups.Main:AddDependencyBox();
+addRichText(DependencySlider:AddLabel('<font color="#ff430a">Delay less than 0.3 can make you miss buttons.</font>', true))
+
+DependencySlider:SetupDependencies({
+	{ Options.PressDelay, -1 }
+});
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
