@@ -19,7 +19,7 @@ local metadata = loadstring(game:HttpGet('https://raw.githubusercontent.com/bard
 local httpService = game:GetService('HttpService')
 local repStorage = game:GetService('ReplicatedStorage')
 
-local liveNPCS, alive, ignoreParts
+local liveNPCS, alive, ignoreParts, events
 local counter = 0
 
 while true do
@@ -47,7 +47,15 @@ while true do
 		end
 	end
 
-    if (typeof(liveNPCS) == 'Instance' and typeof(alive) == 'Instance' and typeof(ignoreParts) == 'Instance') then
+	if typeof(events) ~= 'Instance' then
+		for _, obj in next, repStorage:GetChildren() do
+			if obj.Name == 'Events' and obj:IsA('Folder') then 
+				events = obj
+			end
+		end
+	end
+
+    if (typeof(liveNPCS) == 'Instance' and typeof(alive) == 'Instance' and typeof(ignoreParts) == 'Instance' and typeof(events) == 'Instance') then
         break
     end
 
@@ -182,6 +190,67 @@ do
 	end)
 end
 
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.KillAura) and (Toggles.KillAura.Value)) then
+				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(workspace) then
+					local closestMob = nil
+					for _, v in next, alive:GetChildren() do
+						if v:IsA('Model') and v:FindFirstChildOfClass('Humanoid') and not game.Players:FindFirstChild(v.Name) then
+							if closestMob == nil then
+								closestMob = v
+							else
+								if (client.Character:GetPivot().Position - v:GetPivot().Position).Magnitude < (closestMob:GetPivot().Position - client.Character:GetPivot().Position).Magnitude then
+									closestMob = v
+								end
+							end
+						end
+					end
+					print(closestMob, typeof(closestMob), events:FindFirstChild('CombatEvent'))
+					if typeof(closestMob) == 'Instance' then
+						local weapon = client.Character:FindFirstChild('FistCombat')
+						if client.Character:FindFirstChildOfClass('Tool') and client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript') then
+							if client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript'):FindFirstChild('SS1') then
+								weapon = client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript'):FindFirstChild('SS1')
+							else
+								weapon = client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript')
+							end
+						end
+						if events:FindFirstChild('CombatEvent') then
+							events.CombatEvent:FireServer(1, weapon, closestMob:GetPivot(), true)
+						end
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
+				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(workspace) then
+					local closestMob = alive:FindFirstChild(tostring(Options.TargetMob.Value))
+					if closestMob ~= nil and closestMob:IsDescendantOf(alive) and closestMob:FindFirstChildOfClass('Humanoid') and typeof(closestMob:GetPivot()) == 'CFrame' and typeof(closestMob:GetExtentsSize()) == 'Vector3' and closestMob:FindFirstChildWhichIsA('BasePart') then
+						local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+						client.Character:PivotTo(CFrame.new(closestMob:GetPivot().Position + offset))
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
 local function addRichText(label)
 	label.TextLabel.RichText = true
 end
@@ -206,13 +275,14 @@ Groups.Main:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = fal
 	if Value == true then
 		oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
 	else
-		if typeof(client.Character) == 'Instance' then
+		if typeof(client.Character) == 'Instance' and typeof(oldPivot) == 'CFrame' then
 			client.Character:PivotTo(oldPivot)
 		end
 	end
 end })
+Groups.Main:AddToggle('KillAura', { Text = 'Kill aura', Default = false } )
 
-function removeDuplicates(inputTable)
+local function removeDuplicates(inputTable)
     local outputTable = {}
     local seen = {}
 
@@ -242,6 +312,18 @@ local function GetAliveNPCsString()
 	return AliveList;
 end;
 
+Groups.Main:AddToggle('TeleportToMobs', { Text = 'Teleport to mobs', Default = false } )
+Groups.Main:AddDropdown("TargetMob", {
+	Text = "Target mob",
+	AllowNull = true,
+	Compact = false,
+	Values = GetAliveNPCsString(),
+	Default = GetAliveNPCsString()[1]
+})
+Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = 2, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs' })
+Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs' })
+Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs' })
+
 local aliveNPCs = GetAliveNPCsString()
 Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Text = 'Teleport to moving npc',
@@ -257,6 +339,7 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 })
 
 local function OnAliveNPCsChanged()
+	Options.TargetMob:SetValues(GetAliveNPCsString());
 	Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
 end;
 
