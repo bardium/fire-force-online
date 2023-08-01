@@ -120,7 +120,8 @@ do
 							UI:Notify('No cat quests found', 30)
 							Toggles.CatQuests:SetValue(false)
 						end
-					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') and playerGui.TextGUI.Frame.Accept.Visible == true) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					playerGui.TextGUI.Frame.Accept.Visible = true
 					local buttonPressed = false
 					repeat
 						if playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') then
@@ -165,8 +166,8 @@ do
 							task.wait()
 							fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
 						end
-					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') and playerGui.TextGUI.Frame.Accept.Visible == true) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-						
+					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					playerGui.TextGUI.Frame.Accept.Visible = true
 					repeat
 						clickUiButton(playerGui.TextGUI.Frame.Accept, true)
 						task.wait()
