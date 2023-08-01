@@ -443,7 +443,7 @@ local function GetMarkersString()
 	local MarkerList = {};
 
 	for _, marker in next, markers:GetChildren() do
-		if marker:IsA('BillboardGui') and marker.Enabled == true and marker.Adornee ~= nil and typeof(marker.Adornee) == 'Instane' and marker.Adornee:IsDescendantOf(workspace) then
+		if marker:IsA('BillboardGui') and marker.Enabled == true and marker.Adornee ~= nil and typeof(marker.Adornee) == 'Instance' and marker.Adornee:IsDescendantOf(workspace) then
 			table.insert(MarkerList, marker.Name)
 		end
 	end
@@ -475,6 +475,10 @@ end;
 
 markers.ChildAdded:Connect(OnMarkersChanged);
 markers.ChildRemoved:Connect(OnMarkersChanged);
+
+Groups.Main:AddButton('Refresh markers', function()
+	Options.MarkerTeleports:SetValues(GetMarkersString());
+end)
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
