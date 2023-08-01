@@ -420,8 +420,8 @@ themeManager:SetLibrary(UI)
 themeManager:ApplyToGroupbox(Tabs.UISettings:AddLeftGroupbox('Themes'))
 
 UI:Notify(string.format('Loaded script in %.4f second(s)!', tick() - start), 3)
-if executor ~= 'Fluxus' and executor ~= 'Electron' then
+if executor ~= 'Fluxus' and executor ~= 'Electron' and executor ~= 'Valyse' then
 	UI:Notify(string.format('You may experience problems with the script/UI because you are using %s', executor), 30)
 	task.wait()
-	UI:Notify(string.format('Exploits this script works well with currently: Fluxus and Electron'), 30)
+	UI:Notify(string.format('Exploits this script works well with currently: Fluxus, Electron, and Valyse'), 30)
 end
