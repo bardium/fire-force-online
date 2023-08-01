@@ -360,10 +360,8 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Callback = function(targetAliveNPC)
 		if alive:FindFirstChild(tostring(targetAliveNPC)) and alive[tostring(targetAliveNPC)]:IsA('Model') then
 			if alive:FindFirstChild(tostring(targetAliveNPC)):FindFirstChild('HumanoidRootPart') then
-				local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 				client.Character:PivotTo(alive[tostring(targetAliveNPC)].HumanoidRootPart:GetPivot() * CFrame.new(0, 2, 0))
 			else
-				local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 				client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
 			end
 			client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
@@ -372,7 +370,9 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 })
 
 local function OnAliveNPCsChanged()
-	Options.TargetMob:SetValues(GetAliveNPCsString());
+	if Options.TargetMob ~= nil then
+		Options.TargetMob:SetValues(GetAliveNPCsString());
+	end
 	Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
 end;
 
