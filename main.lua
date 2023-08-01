@@ -443,7 +443,7 @@ local function GetMarkersString()
 	local MarkerList = {};
 
 	for _, marker in next, markers:GetChildren() do
-		if marker:IsA('BillboardGui') and marker.Enabled == true and marker.Adornee:IsDescendantOf(workspace) then
+		if marker:IsA('BillboardGui') and marker.Enabled == true and marker.Adornee ~= nil and typeof(marker.Adornee) == 'Instane' and marker.Adornee:IsDescendantOf(workspace) then
 			table.insert(MarkerList, marker.Name)
 		end
 	end
@@ -463,8 +463,8 @@ Groups.Main:AddDropdown('MarkerTeleports', {
 	Values = markersString,
 	Default = markersString[1] or 'No markers found',
 	Callback = function(marker)
-		if markers:FindFirstChild(marker) and markers[marker].Adornee:IsDescendantOf(workspace) and client.Character:IsDescendantOf(alive) then
-			client.Character:PivotTo(markers[marker].Adornee)
+		if type(marker) ~= 'nil' and markers:FindFirstChild(marker) and markers[marker].Adornee:IsDescendantOf(workspace) and client.Character:IsDescendantOf(alive) then
+			client.Character:PivotTo(markers[marker].Adornee:GetPivot())
 		end
 	end,
 })
