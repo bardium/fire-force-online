@@ -19,7 +19,7 @@ local metadata = loadstring(game:HttpGet('https://raw.githubusercontent.com/bard
 local httpService = game:GetService('HttpService')
 local repStorage = game:GetService('ReplicatedStorage')
 
-local liveNPCS, alive, ignoreParts, events
+local liveNPCS, alive, ignoreParts, events, markers
 local counter = 0
 
 while true do
@@ -47,6 +47,14 @@ while true do
 		end
 	end
 
+	if typeof(markers) ~= 'Instance' then
+		for _, obj in next, workspace:GetChildren() do
+			if obj.Name == 'AllMissionMarkers' and obj:IsA('Folder') then 
+				markers = obj
+			end
+		end
+	end
+
 	if typeof(events) ~= 'Instance' then
 		for _, obj in next, repStorage:GetChildren() do
 			if obj.Name == 'Events' and obj:IsA('Folder') then 
@@ -55,13 +63,13 @@ while true do
 		end
 	end
 
-    if (typeof(liveNPCS) == 'Instance' and typeof(alive) == 'Instance' and typeof(ignoreParts) == 'Instance' and typeof(events) == 'Instance') then
+    if (typeof(liveNPCS) == 'Instance' and typeof(alive) == 'Instance' and typeof(ignoreParts) == 'Instance' and typeof(events) == 'Instance' and typeof(markers) == 'Instance') then
         break
     end
 
     counter = counter + 1
     if counter > 6 then
-        client:Kick(string.format('Failed to load game dependencies. Details: %s, %s, %s', typeof(liveNPCS), typeof(alive), typeof(ignoreParts)))
+        client:Kick(string.format('Failed to load game dependencies. Details: %s, %s, %s, %s, %s', typeof(liveNPCS), typeof(alive), typeof(ignoreParts), typeof(markers), typeof(events)))
     end
     task.wait(1)
 end
@@ -129,7 +137,9 @@ do
 							Toggles.CatQuests:SetValue(false)
 						end
 					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					playerGui.TextGUI.Frame.Accept.Visible = true
+					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+						playerGui.TextGUI.Frame.Accept.Visible = true
+					end
 					local buttonPressed = false
 					repeat
 						if playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') then
@@ -142,7 +152,7 @@ do
 							buttonPressed = true
 						end
 						task.wait()
-					until (buttonPressed) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					until (buttonPressed) or (not Toggles.CatQuests.Value)
 				end
 				
 				if sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') then
@@ -175,11 +185,17 @@ do
 							fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
 						end
 					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					playerGui.TextGUI.Frame.Accept.Visible = true
+					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+						playerGui.TextGUI.Frame.Accept.Visible = true
+					end
 					repeat
-						clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+						end
 						task.wait()
-						clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+						end
 					until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
 				end
 			end
@@ -195,7 +211,7 @@ do
 		while true do
 			task.wait()
 			if ((Toggles.KillAura) and (Toggles.KillAura.Value)) then
-				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(workspace) then
+				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
 					local closestMob = nil
 					for _, v in next, alive:GetChildren() do
 						if v:IsA('Model') and v:FindFirstChildOfClass('Humanoid') and not game.Players:FindFirstChild(v.Name) then
@@ -236,7 +252,7 @@ do
 		while true do
 			task.wait()
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
-				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(workspace) then
+				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
 					local closestMob = alive:FindFirstChild(tostring(Options.TargetMob.Value))
 					if closestMob ~= nil and closestMob:IsDescendantOf(alive) and closestMob:FindFirstChildOfClass('Humanoid') and typeof(closestMob:GetPivot()) == 'CFrame' and typeof(closestMob:GetExtentsSize()) == 'Vector3' and closestMob:FindFirstChildWhichIsA('BasePart') then
 						local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
@@ -280,6 +296,11 @@ Groups.Main:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = fal
 		end
 	end
 end })
+local Depbox = Groups.Main:AddDependencyBox();
+Depbox:AddLabel('If you experience problems with the cat quests, please re-execute. Also make sure the UI isnt covering the dialog text UI.\n', true)
+Depbox:SetupDependencies({
+	{ Toggles.CatQuests, true }
+});
 Groups.Main:AddToggle('KillAura', { Text = 'Kill aura', Default = false } )
 
 local function removeDuplicates(inputTable)
@@ -313,8 +334,8 @@ local function GetAliveNPCsString()
 end;
 
 Groups.Main:AddToggle('TeleportToMobs', { Text = 'Teleport to mobs', Default = false } )
-Groups.Main:AddDropdown("TargetMob", {
-	Text = "Target mob",
+Groups.Main:AddDropdown('TargetMob', {
+	Text = 'Target mob',
 	AllowNull = true,
 	Compact = false,
 	Values = GetAliveNPCsString(),
@@ -333,7 +354,7 @@ Groups.Main:AddDropdown('AliveNPCTeleports', {
 	Default = aliveNPCs[1],
 	Callback = function(targetAliveNPC)
 		if alive:FindFirstChild(tostring(targetAliveNPC)) and alive[tostring(targetAliveNPC)]:IsA('Model') then
-			client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot())
+			client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
 		end
 	end,
 })
@@ -351,7 +372,11 @@ local function GetLiveNPCsString()
 
 	for _, liveNPC in next, liveNPCS:GetChildren() do
 		if liveNPC:IsA('Model') and not liveNPC:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(liveNPC) then
-			table.insert(LiveList, liveNPC.Name)
+			if liveNPC.Name == 'PoliceMan' then
+				table.insert(LiveList, 'Officer Jones')
+			else
+				table.insert(LiveList, liveNPC.Name)
+			end
 		end
 	end
 
@@ -378,12 +403,17 @@ Groups.Main:AddDropdown('LiveNPCTeleports', {
 	Values = liveNPCs,
 	Default = liveNPCs[1],
 	Callback = function(targetLiveNPC)
+		if targetLiveNPC == 'Officer Jones' then
+			if liveNPCS:FindFirstChild('PoliceMan') and liveNPCS.PoliceMan:IsA('Model') then
+				client.Character:PivotTo(liveNPCS.PoliceMan:GetPivot() * CFrame.new(0, 2, 0))
+			end
+		end
 		if liveNPCS:FindFirstChild(tostring(targetLiveNPC)) and liveNPCS[tostring(targetLiveNPC)]:IsA('Model') then
-			client.Character:PivotTo(liveNPCS[tostring(targetLiveNPC)]:GetPivot())
+			client.Character:PivotTo(liveNPCS[tostring(targetLiveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
 		elseif workspace:FindFirstChild('HelpfulNPCS') then
 			for _, helpfulNPC in next, workspace.HelpfulNPCS:GetDescendants() do
 				if helpfulNPC.Name == targetLiveNPC and helpfulNPC:IsA('Model') then
-					client.Character:PivotTo(helpfulNPC:GetPivot())
+					client.Character:PivotTo(helpfulNPC:GetPivot() * CFrame.new(0, 2, 0))
 				end
 			end
 		end
@@ -396,6 +426,43 @@ end;
 
 liveNPCS.ChildAdded:Connect(OnLiveNPCsChanged);
 liveNPCS.ChildRemoved:Connect(OnLiveNPCsChanged);
+
+local function GetMarkersString()
+	local MarkerList = {};
+
+	for _, marker in next, markers:GetChildren() do
+		if marker:IsA('BillboardGui') and marker.Enabled == true and marker.Adornee:IsDescendantOf(workspace) then
+			table.insert(MarkerList, marker.Name)
+		end
+	end
+
+	MarkerList = removeDuplicates(MarkerList)
+
+	table.sort(MarkerList, function(str1, str2) return str1 < str2 end);
+
+	return MarkerList;
+end;
+
+local markersString = GetMarkersString()
+Groups.Main:AddDropdown('MarkerTeleports', {
+	Text = 'Teleport to marker',
+	AllowNull = true,
+	Compact = false,
+	Values = markersString,
+	Default = markersString[1] or 'No markers found',
+	Callback = function(marker)
+		if markers:FindFirstChild(marker) and markers[marker].Adornee:IsDescendantOf(workspace) and client.Character:IsDescendantOf(alive) then
+			client.Character:PivotTo(markers[marker].Adornee)
+		end
+	end,
+})
+
+local function OnMarkersChanged()
+	Options.MarkerTeleports:SetValues(GetMarkersString());
+end;
+
+markers.ChildAdded:Connect(OnMarkersChanged);
+markers.ChildRemoved:Connect(OnMarkersChanged);
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
