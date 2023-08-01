@@ -1,6 +1,7 @@
 --[[
 CREDITS:
 UI Library: Inori & wally
+HUGE HELP WITH SCRIPT: DeityVarn
 Script: goosebetter
 ]]
 
@@ -272,6 +273,27 @@ do
 	end)
 end
 
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.AutoKeysDefense) and (Toggles.AutoKeysDefense.Value)) then
+				if client:FindFirstChildOfClass('PlayerGui') and client:FindFirstChildOfClass('PlayerGui'):FindFirstChild('TrainingGui') and client:FindFirstChildOfClass('PlayerGui').TrainingGui:FindFirstChild('DefenseTraining') and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Value == true and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Pause.Value == false and events:FindFirstChild('TrainingEvent') then
+					local KeyToPress = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value
+					local TrainingGUI = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining
+					local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
+			
+					events.TrainingEvent:FireServer('Defense', keyToPress)
+					task.wait(.2)
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
 local function addRichText(label)
 	label.TextLabel.RichText = true
 end
@@ -479,6 +501,8 @@ markers.ChildRemoved:Connect(OnMarkersChanged);
 Groups.Main:AddButton('Refresh markers', function()
 	Options.MarkerTeleports:SetValues(GetMarkersString());
 end)
+
+Groups.Main:AddToggle('AutoKeysDefense', { Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
