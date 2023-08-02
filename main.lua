@@ -442,7 +442,7 @@ Groups.Main:AddToggle('TeleportToMobs', { Text = 'Loop teleport to target', Defa
 local aliveNPCs = GetAliveNPCsString()
 Groups.Main:AddDropdown('TargetMobs', {
 	Text = 'Target mob',
-	AllowNull = true,
+	AllowNull = false,
 	Compact = false,
 	Values = aliveNPCs,
 	Default = aliveNPCs[1]
@@ -454,7 +454,7 @@ Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 
 Groups.Teleports = Tabs.Main:AddRightGroupbox('Teleports')
 Groups.Teleports:AddDropdown('AliveNPCTeleports', {
 	Text = 'Teleport to mob',
-	AllowNull = true,
+	AllowNull = false,
 	Compact = false,
 	Values = aliveNPCs,
 	Default = aliveNPCs[1],
