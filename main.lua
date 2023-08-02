@@ -97,24 +97,36 @@ do
 		for i = 1, #shared.callbacks do
 			task.spawn(shared.callbacks[i])
 		end
+
+		for i = 1, #shared.connnections do
+			shared.connnections[i]:Disconnect()
+		end
 	end
 
 	shared.threads = {}
 	shared.callbacks = {}
+	shared.connections = {}
 
 	shared._id = httpService:GenerateGUID(false)
+end
+
+local function clickUiButton(v, state)
+	virtualInputManager:SendMouseButtonEvent(v.AbsolutePosition.X + v.AbsoluteSize.X / 2, v.AbsolutePosition.Y + 50, 0, state, game, 1)
 end
 
 do
 	local thread = task.spawn(function()
 		local playerGui = client:WaitForChild('PlayerGui')
 		local sideQuest = playerGui:WaitForChild('Status'):WaitForChild('SideQuest')
-		local function clickUiButton(v, state)
-			virtualInputManager:SendMouseButtonEvent(v.AbsolutePosition.X + v.AbsoluteSize.X / 2, v.AbsolutePosition.Y + 50, 0, state, game, 1)
-		end
 		while true do
 			task.wait()
 			if ((Toggles.CatQuests) and (Toggles.CatQuests.Value)) then
+				if client:FindFirstChild('Stats') and client.Stats:FindFirstChild('PlayerRank') then
+					if client.Stats:FindFirstChild('PlayerRank').Value >= 10 then
+						UI:Notify('Your rank is too high to use cat quests', 5)
+						Toggles.CatQuests:SetValue(false)
+					end
+				end
 				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat') then
 					UI:Notify('You already have a quest. Cancel it or finish it before using cat quests.', 5)
 					Toggles.CatQuests:SetValue(false)
@@ -254,14 +266,15 @@ do
 			task.wait()
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
-					local closestMob = alive:FindFirstChild(tostring(Options.TargetMobs.Value))
-					if closestMob ~= nil and closestMob:IsDescendantOf(alive) and closestMob:FindFirstChildOfClass('Humanoid') and typeof(closestMob:GetPivot()) == 'CFrame' and typeof(closestMob:GetExtentsSize()) == 'Vector3' and closestMob:FindFirstChildWhichIsA('BasePart') then
-						if closestMob:FindFirstChild('HumanoidRootPart') then
+					local targetMob = alive:FindFirstChild(tostring(Options.TargetMobs.Value))
+					if alive:FindFirstChild(tostring(Options.TargetMobs.Value)) and targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
+						if targetMob:FindFirstChild('Torso') then
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-							client.Character:PivotTo(CFrame.new(closestMob.HumanoidRootPart:GetPivot().Position + offset))
+							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
+							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset, targetMob.Torso.Position))
 						else
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-							client.Character:PivotTo(CFrame.new(closestMob:GetPivot().Position + offset))
+							client.Character:PivotTo(targetMob:GetPivot() * offset)
 						end
 					end
 				end
@@ -279,13 +292,85 @@ do
 			task.wait()
 			if ((Toggles.AutoKeysDefense) and (Toggles.AutoKeysDefense.Value)) then
 				if client:FindFirstChildOfClass('PlayerGui') and client:FindFirstChildOfClass('PlayerGui'):FindFirstChild('TrainingGui') and client:FindFirstChildOfClass('PlayerGui').TrainingGui:FindFirstChild('DefenseTraining') and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.Value == true and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:WaitForChild('Pause').Value == false and events:FindFirstChild('TrainingEvent') then
-					if client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:FindFirstChild('CurrentKeyToPress') and type(client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value) == 'number' and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining and client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining:FindFirstChild(client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value) then
-						local KeyToPress = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining.CurrentKeyToPress.Value
-						local TrainingGUI = client:FindFirstChildOfClass('PlayerGui').TrainingGui.DefenseTraining
+					local playerGui = client:FindFirstChildOfClass('PlayerGui')
+					if playerGui.TrainingGui.DefenseTraining:FindFirstChild('CurrentKeyToPress') and type(playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value) == 'number' and playerGui.TrainingGui.DefenseTraining and playerGui.TrainingGui.DefenseTraining:FindFirstChild(playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value) then
+						local KeyToPress = playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value
+						local TrainingGUI = playerGui.TrainingGui.DefenseTraining
 						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
 				
 						events.TrainingEvent:FireServer('Defense', keyToPress)
 						task.wait(Options.PressDelay.Value)
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.AutoClickStrength) and (Toggles.AutoClickStrength.Value)) then
+				if client:FindFirstChildOfClass('PlayerGui') then
+					local playerGui = client:FindFirstChildOfClass('PlayerGui')
+					if playerGui:FindFirstChild('TrainingGui') then
+						local trainingGui = playerGui.TrainingGui
+						if trainingGui:FindFirstChild('KeyArea') and trainingGui.KeyArea:FindFirstChild('ClickButon') then
+							clickUiButton(trainingGui.KeyArea.ClickButton, true)
+							clickUiButton(trainingGui.KeyArea.ClickButton, false)
+						end
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.MobESP) and (Toggles.MobESP.Value)) then
+				for _, mob in next, alive:GetChildren() do
+					if mob:IsA('Model') and mob:FindFirstChildOfClass('Humanoid') and not game.Players:FindFirstChild(mob.Name) and mob:FindFirstChild('Head') then
+						if not mob:FindFirstChild('boxESP') then
+							local boxESP = Instance.new('BoxHandleAdornment', mob)
+							boxESP.Name = 'boxESP'
+							boxESP.Adornee = mob
+							boxESP.AlwaysOnTop = true
+							boxESP.ZIndex = 0
+							boxESP.Size = mob:GetExtentsSize()
+							boxESP.Transparency = Options.MobESPTransparency.Value
+							boxESP.Color = BrickColor.new('Bright red')
+						end
+						if not mob:FindFirstChild('tagESP') then
+							local tagESP = Instance.new('BillboardGui', mob)
+							tagESP.Name = 'tagESP'
+							tagESP.Size = UDim2.new(0, 100, 0, 150)
+							tagESP.StudsOffset = Vector3.new(0, 1, 0)
+							tagESP.Adornee = mob.Head
+							tagESP.AlwaysOnTop = true
+							local espText = Instance.new('TextLabel', tagESP)
+							espText.TextSize = 20
+							espText.Text = 'Name: '..mob.Name..' | Health: '..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').Health + 0.5))..'/'..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').MaxHealth + 0.5))
+							espText.Position = UDim2.new(0, 0, 0, -50)
+							espText.Size = UDim2.new(0, 100, 0, 100)
+							espText.TextYAlignment = Enum.TextYAlignment.Bottom
+							espText.TextColor3 = Color3.new(1,1,1)
+							espText.BackgroundTransparency = 1
+							espText.TextTransparency = Options.MobESPTransparency.Value
+							espText.ZIndex = 10
+							if typeof(Options.MobESPFont.Value) == 'string' then
+								espText.Font = Enum.Font[Options.MobESPFont.Value]
+							end
+						end
 					end
 				end
 			end
@@ -332,30 +417,16 @@ Depbox:SetupDependencies({
 });
 Groups.Main:AddToggle('KillAura', { Text = 'Kill aura', Default = false } )
 
-local function removeDuplicates(inputTable)
-    local outputTable = {}
-    local seen = {}
-
-    for _, value in ipairs(inputTable) do
-        if not seen[value] then
-            table.insert(outputTable, value)
-            seen[value] = true
-        end
-    end
-
-    return outputTable
-end
-
 local function GetAliveNPCsString()
 	local AliveList = {};
 
-	for _, aliveNPC in next, alive:GetChildren() do
+	for i, aliveNPC in next, alive:GetChildren() do
 		if aliveNPC:IsA('Model') and not aliveNPC:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(aliveNPC) then
-			table.insert(AliveList, aliveNPC.Name)
+			local realName = aliveNPC.Name .. tostring(i)
+			aliveNPC:SetAttribute('realName', realName)
+			table.insert(AliveList, realName)
 		end
 	end
-
-	AliveList = removeDuplicates(AliveList)
 
 	table.sort(AliveList, function(str1, str2) return str1 < str2 end);
 
@@ -375,56 +446,63 @@ Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, 
 Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
 Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
 
-Groups.Main:AddDropdown('AliveNPCTeleports', {
-	Text = 'Teleport to moving npc',
+Groups.Teleports = Tabs.Main:AddRightGroupbox('Teleports')
+Groups.Teleports:AddDropdown('AliveNPCTeleports', {
+	Text = 'Teleport to mob',
 	AllowNull = true,
 	Compact = false,
 	Values = aliveNPCs,
 	Default = aliveNPCs[1],
 	Callback = function(targetAliveNPC)
-		if alive:FindFirstChild(tostring(targetAliveNPC)) and alive[tostring(targetAliveNPC)]:IsA('Model') then
-			if alive:FindFirstChild(tostring(targetAliveNPC)):FindFirstChild('HumanoidRootPart') then
-				client.Character:PivotTo(alive[tostring(targetAliveNPC)].HumanoidRootPart:GetPivot() * CFrame.new(0, 2, 0))
-			else
-				client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
+		for _, aliveNPC in next, alive:GetChildren() do
+			if aliveNPC:GetAttribute('realName') == targetAliveNPC and aliveNPC:IsA('Model') then
+				if aliveNPC:FindFirstChild('Torso') then
+					client.Character:PivotTo(aliveNPC.Torso:GetPivot() * CFrame.new(0, 2, 0))
+				else
+					client.Character:PivotTo(aliveNPC:GetPivot() * CFrame.new(0, 2, 0))
+				end
 			end
-			client.Character:PivotTo(alive[tostring(targetAliveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
 		end
 	end,
 })
 
 local function OnAliveNPCsChanged()
-	if Options.TargetMobs ~= nil and type(Options.TargetMobs.SetValues) == 'function' then
-		Options.TargetMobs:SetValues(GetAliveNPCsString());
-	end
-	Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
+	pcall(function()
+		if type(Options.TargetMobs) ~= 'nil' and type(Options.TargetMobs.SetValues) == 'function' then
+			Options.TargetMobs:SetValues(GetAliveNPCsString());
+		end
+		Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
+	end)
 end;
 
-alive.ChildAdded:Connect(OnAliveNPCsChanged);
-alive.ChildRemoved:Connect(OnAliveNPCsChanged);
+local aliveAdded = alive.ChildAdded:Connect(OnAliveNPCsChanged);
+local aliveRemoved = alive.ChildRemoved:Connect(OnAliveNPCsChanged);
+table.insert(shared.connections, aliveAdded)
+table.insert(shared.connections, aliveRemoved)
 
 local function GetLiveNPCsString()
 	local LiveList = {};
 
-	for _, liveNPC in next, liveNPCS:GetChildren() do
+	for i, liveNPC in next, liveNPCS:GetChildren() do
 		if liveNPC:IsA('Model') and not liveNPC:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(liveNPC) then
+			local realName = '!' .. liveNPC.Name .. tostring(i)
 			if liveNPC.Name == 'PoliceMan' then
-				table.insert(LiveList, 'Officer Jones')
-			else
-				table.insert(LiveList, liveNPC.Name)
+				realName = '!Officer Jones'.. tostring(i)
 			end
+			liveNPC:SetAttribute('realName', realName)
+			table.insert(LiveList, realName)
 		end
 	end
 
 	if workspace:FindFirstChild('HelpfulNPCS') and workspace.HelpfulNPCS:IsA('Folder') then
-		for _, liveNPC in next, workspace.HelpfulNPCS:GetDescendants() do
+		for i, liveNPC in next, workspace.HelpfulNPCS:GetDescendants() do
 			if liveNPC:IsA('Model') and liveNPC:FindFirstChildOfClass('Humanoid') then
-				table.insert(LiveList, liveNPC.Name)
+				local realName = liveNPC.Name .. tostring(i)
+				liveNPC:SetAttribute('realName', realName)
+				table.insert(LiveList, realName)
 			end
 		end
 	end
-
-	LiveList = removeDuplicates(LiveList)
 
 	table.sort(LiveList, function(str1, str2) return str1 < str2 end);
 
@@ -432,24 +510,28 @@ local function GetLiveNPCsString()
 end;
 
 local liveNPCs = GetLiveNPCsString()
-Groups.Main:AddDropdown('LiveNPCTeleports', {
+Groups.Teleports:AddDropdown('LiveNPCTeleports', {
 	Text = 'Teleport to regular npc',
-	AllowNull = true,
+	AllowNull = false,
 	Compact = false,
 	Values = liveNPCs,
 	Default = liveNPCs[1],
 	Callback = function(targetLiveNPC)
-		if targetLiveNPC == 'Officer Jones' then
+		if type(targetLiveNPC) == 'string' and targetLiveNPC:match('!Officer Jones') then
 			if liveNPCS:FindFirstChild('PoliceMan') and liveNPCS.PoliceMan:IsA('Model') then
 				client.Character:PivotTo(liveNPCS.PoliceMan:GetPivot() * CFrame.new(0, 2, 0))
 			end
 		end
-		if liveNPCS:FindFirstChild(tostring(targetLiveNPC)) and liveNPCS[tostring(targetLiveNPC)]:IsA('Model') then
-			client.Character:PivotTo(liveNPCS[tostring(targetLiveNPC)]:GetPivot() * CFrame.new(0, 2, 0))
+		if string.sub(tostring(targetLiveNPC), 1, 1) == '!' then
+			for _, liveNPC in next, liveNPCS:GetChildren() do
+				if liveNPC:GetAttribute('realName') == targetLiveNPC and liveNPC:IsA('Model') then
+					client.Character:PivotTo(liveNPC:GetPivot() * CFrame.new(0, 2, 0))
+				end
+			end
 		elseif workspace:FindFirstChild('HelpfulNPCS') then
-			for _, helpfulNPC in next, workspace.HelpfulNPCS:GetDescendants() do
-				if helpfulNPC.Name == targetLiveNPC and helpfulNPC:IsA('Model') then
-					client.Character:PivotTo(helpfulNPC:GetPivot() * CFrame.new(0, 2, 0))
+			for _, liveNPC in next, workspace.HelpfulNPCS:GetDescendants() do
+				if liveNPC:GetAttribute('realName') == targetLiveNPC and liveNPC:IsA('Model') then
+					client.Character:PivotTo(liveNPC:GetPivot() * CFrame.new(0, 2, 0))
 				end
 			end
 		end
@@ -460,8 +542,11 @@ local function OnLiveNPCsChanged()
 	Options.LiveNPCTeleports:SetValues(GetLiveNPCsString());
 end;
 
-liveNPCS.ChildAdded:Connect(OnLiveNPCsChanged);
-liveNPCS.ChildRemoved:Connect(OnLiveNPCsChanged);
+local liveAdded = liveNPCS.ChildAdded:Connect(OnLiveNPCsChanged);
+local liveRemoved = liveNPCS.ChildRemoved:Connect(OnLiveNPCsChanged);
+
+table.insert(shared.connections, liveAdded)
+table.insert(shared.connections, liveRemoved)
 
 local function GetMarkersString()
 	local MarkerList = {};
@@ -472,20 +557,18 @@ local function GetMarkersString()
 		end
 	end
 
-	MarkerList = removeDuplicates(MarkerList)
-
 	table.sort(MarkerList, function(str1, str2) return str1 < str2 end);
 
 	return MarkerList;
 end;
 
 local markersString = GetMarkersString()
-Groups.Main:AddDropdown('MarkerTeleports', {
+Groups.Teleports:AddDropdown('MarkerTeleports', {
 	Text = 'Teleport to marker',
 	AllowNull = true,
 	Compact = false,
 	Values = markersString,
-	Default = markersString[1] or 'No markers found',
+	Default = markersString[1] ~= nil and markersString[1] or 'No markers found',
 	Callback = function(marker)
 		if type(marker) ~= 'nil' and markers:FindFirstChild(marker) and markers[marker].Adornee:IsDescendantOf(workspace) and client.Character:IsDescendantOf(alive) then
 			client.Character:PivotTo(markers[marker].Adornee:GetPivot())
@@ -493,21 +576,82 @@ Groups.Main:AddDropdown('MarkerTeleports', {
 	end,
 })
 
-local function OnMarkersChanged()
-	Options.MarkerTeleports:SetValues(GetMarkersString());
-end;
-
-markers.ChildAdded:Connect(OnMarkersChanged);
-markers.ChildRemoved:Connect(OnMarkersChanged);
-
-Groups.Main:AddButton('Refresh markers', function()
+Groups.Teleports:AddButton('Refresh markers', function()
 	Options.MarkerTeleports:SetValues(GetMarkersString());
 end)
 
-Groups.Main:AddToggle('AutoKeysDefense', { Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
-Groups.Main:AddSlider('PressDelay',   { Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training.' })
+Groups.Training = Tabs.Main:AddLeftGroupbox('Training')
+Groups.Training:AddToggle('AutoKeysDefense',	{ Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
+Groups.Training:AddSlider('PressDelay',			{ Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training.' })
 
-addRichText(Groups.Main:AddLabel('<font color="#ff430a">Press delay less than 0.3 can make you miss buttons.</font>', true))
+addRichText(Groups.Training:AddLabel('<font color="#ff430a">Press delay less than 0.3 can make you miss buttons.</font>', true))
+
+Groups.Training:AddToggle('AutoClickStrength',	{ Text = 'Auto click strength button', Default = false, Tooltip = 'Auto click strength buttons for defense training.' } )
+
+local possibleFonts = {
+	'Arial',
+	'ArialBold',
+	'SourceSans',
+	'SourceSansBold',
+	'SourceSansLight',
+	'SourceSansItalic',
+	'Bodoni',
+	'Garamond',
+	'Cartoon',
+	'Code',
+	'Highway',
+	'SciFi',
+	'Arcade',
+	'Fantasy',
+	'Antique',
+	'SourceSansSemibold',
+	'Gotham',
+	'GothamMedium',
+	'GothamBold',
+	'GothamBlack',
+	'AmaticSC',
+	'Bangers',
+	'Creepster',
+	'DenkOne',
+	'Fondamento',
+	'FredokaOne',
+	'GrenzeGotisch',
+	'IndieFlower',
+	'JosefinSans',
+	'Jura',
+	'Kalam',
+	'LuckiestGuy',
+	'Merriweather',
+	'Michroma',
+	'Nunito',
+	'Oswald',
+	'PatrickHand',
+	'PermanentMarker',
+	'Roboto',
+	'RobotoCondensed',
+	'RobotoMono',
+	'Sarpanch',
+	'SpecialElite',
+	'TitilliumWeb',
+	'Ubuntu',
+}
+Groups.ESP  = Tabs.Main:AddRightGroupbox('ESP')
+Groups.ESP:AddToggle('MobESP', 				{ Text = 'Mob esp', Default = true})
+Groups.ESP:AddSlider('MobESPTransparency',	{ Text = 'Mob esp transparency', Min = 0, Max = 1, Default = 0.5, Suffix = '%', Rounding = 3, Compact = true })
+Groups.ESP:AddDropdown('MobESPFont',		{
+	Text = 'Mob ESP Font',
+	AllowNull = false,
+	Compact = false,
+	Values = possibleFonts,
+	Default = possibleFonts[4]
+})
+Groups.ESP:AddButton('Refresh ESP', function()
+	for _, v in next, alive:GetDescendants() do
+		if v.Name == 'boxESP' or v.Name == 'tagESP' then
+			v:Destroy()
+		end
+	end
+end)
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
