@@ -363,7 +363,6 @@ do
 							tagESP.AlwaysOnTop = true
 							local espText = Instance.new('TextLabel', tagESP)
 							espText.TextSize = 20
-							espText.Text = 'Name: '..mob.Name..' | Health: '..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').Health + 0.5))..'/'..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').MaxHealth + 0.5))
 							espText.Position = UDim2.new(0, 0, 0, -50)
 							espText.Size = UDim2.new(0, 100, 0, 100)
 							espText.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -374,6 +373,10 @@ do
 							if typeof(Options.MobESPFont.Value) == 'string' then
 								espText.Font = Enum.Font[Options.MobESPFont.Value]
 							end
+							espText.Text = 'Name: '..mob.Name..' | Health: '..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').Health + 0.5))..'/'..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').MaxHealth + 0.5))
+							mob:FindFirstChildOfClass('Humanoid'):GetPropertyChangedSignal('Health'):Connect(function()
+								espText.Text = 'Name: '..mob.Name..' | Health: '..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').Health + 0.5))..'/'..tostring(math.floor(mob:FindFirstChildOfClass('Humanoid').MaxHealth + 0.5))
+							end)
 						end
 					end
 				end
