@@ -265,8 +265,9 @@ do
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
 					local targetMob = nil
+
 					for _, aliveNPC in next, alive:GetChildren() do
-						if aliveNPC:GetAttribute('realName') == tostring(Options.TargetMobs.Value) and aliveNPC:IsA('Model') then
+						if Options.TargetMobs.Value[aliveNPC.Name] == true and aliveNPC:IsA('Model') then
 							targetMob = aliveNPC
 						end
 					end
@@ -442,12 +443,14 @@ end;
 
 Groups.Main:AddToggle('TeleportToMobs', { Text = 'Loop teleport to target', Default = false } )
 local aliveNPCs = GetAliveNPCsString()
+local mobNames = {'AdultCivilianNPC', 'Amaterasu', 'Backpacker', 'BerserkerInfernal', 'Brandon', 'CarThief', 'ChildCivilianNPC', 'ChildNPC', 'CrawlerInfernal', 'Curt', 'ExplodingInfernal', 'FireForceScientist', 'Girl', 'Inca', 'Infernal', 'Infernal Demon', 'Infernal Oni', 'Infernal2', 'LightningNPC', 'OldLady', 'OldMan', 'Parry Block', 'Parry No Block', 'Pedro', 'PurseNPC', 'PurseNPC', 'RealExaminer', 'Shadow', 'ShoNPC', 'ShoTest', 'SummoningInfernal', 'Thug1', 'ThugNPC', 'UnknownExaminer', 'WhiteCladDefender1', 'WhiteCladScout', 'WhiteCladTraitor1', 'WhiteCladTraitor2'}
 Groups.Main:AddDropdown('TargetMobs', {
-	Text = 'Target mob',
+	Text = 'Target mobs',
 	AllowNull = false,
 	Compact = false,
-	Values = aliveNPCs,
-	Default = aliveNPCs[1]
+	Values = mobNames,
+	Multi = true,
+	Default = 1
 })
 Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = -3, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
 Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
@@ -475,9 +478,6 @@ Groups.Teleports:AddDropdown('AliveNPCTeleports', {
 
 local function OnAliveNPCsChanged()
 	pcall(function()
-		if type(Options.TargetMobs) ~= 'nil' and type(Options.TargetMobs.SetValues) == 'function' then
-			Options.TargetMobs:SetValues(GetAliveNPCsString());
-		end
 		Options.AliveNPCTeleports:SetValues(GetAliveNPCsString());
 	end)
 end;
@@ -546,7 +546,9 @@ Groups.Teleports:AddDropdown('LiveNPCTeleports', {
 })
 
 local function OnLiveNPCsChanged()
-	Options.LiveNPCTeleports:SetValues(GetLiveNPCsString());
+	pcall(function()
+		Options.LiveNPCTeleports:SetValues(GetLiveNPCsString());
+	end)
 end;
 
 local liveAdded = liveNPCS.ChildAdded:Connect(OnLiveNPCsChanged);
