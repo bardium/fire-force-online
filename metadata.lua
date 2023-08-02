@@ -1,5 +1,5 @@
 return {
-	version = '1.02',
+	version = '1.03',
 	updated = '8/01/2023',
-	message = 'bandaid fix for outdated exploits'
+	message = 'auto press keys for defense training + bug fixes'
 }
