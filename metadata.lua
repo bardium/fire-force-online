@@ -1,5 +1,5 @@
 return {
-	version = '1.05',
+	version = '1.06',
 	updated = '8/02/2023',
-	message = 'auto click strength button + bug fixes'
+	message = 'multi-select target mobs'
 }
