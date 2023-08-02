@@ -470,7 +470,7 @@ Groups.Main:AddToggle('AutoTeleportToSafeZone',		{ Text = 'Auto teleport to safe
 local aliveNPCs = GetAliveNPCsString()
 local mobNames = {'AdultCivilianNPC', 'Amaterasu', 'Backpacker', 'BerserkerInfernal', 'Brandon', 'CarThief', 'ChildCivilianNPC', 'ChildNPC', 'CrawlerInfernal', 'Curt', 'ExplodingInfernal', 'FireForceScientist', 'Girl', 'Inca', 'Infernal', 'Infernal Demon', 'Infernal Oni', 'Infernal2', 'LightningNPC', 'OldLady', 'OldMan', 'Parry Block', 'Parry No Block', 'Pedro', 'PurseNPC', 'PurseNPC', 'RealExaminer', 'Shadow', 'ShoNPC', 'ShoTest', 'SummoningInfernal', 'Thug1', 'ThugNPC', 'UnknownExaminer', 'WhiteCladDefender1', 'WhiteCladScout', 'WhiteCladTraitor1', 'WhiteCladTraitor2'}
 Groups.Main:AddDropdown('TargetMobs', 				{ Text = 'Target mobs', AllowNull = false, Compact = false, Values = mobNames, Multi = true, Default = 1 })
-Groups.Main:AddSlider('YOffset',					{ Text = 'Height offset', Min = -50, Max = 50, Default = -3, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
+Groups.Main:AddSlider('YOffset',					{ Text = 'Height offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
 Groups.Main:AddSlider('XOffset',					{ Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
 Groups.Main:AddSlider('ZOffset',					{ Text = 'Z position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
 
@@ -485,7 +485,7 @@ Groups.Teleports:AddDropdown('AliveNPCTeleports',	{
 		for _, aliveNPC in next, alive:GetChildren() do
 			if aliveNPC:GetAttribute('realName') == targetAliveNPC and aliveNPC:IsA('Model') then
 				if aliveNPC:FindFirstChild('Torso') then
-					client.Character:PivotTo(aliveNPC.Torso:GetPivot() * CFrame.new(0, 2, 0))
+					client.Character:PivotTo(aliveNPC.Torso.CFrame * CFrame.new(0, 2, 0))
 				else
 					client.Character:PivotTo(aliveNPC:GetPivot() * CFrame.new(0, 2, 0))
 				end
