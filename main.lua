@@ -277,14 +277,16 @@ do
 					else
 						if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
 							shared.tpToSafeZone = false
+							local mobTPOffset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+							if (mobTPOffset - Vector3.zero).Magnitude < 0.001 then
+								mobTPOffset = Vector3.new(0.001, 0.001, 0.001)
+							end
 							if targetMob:FindFirstChild('Torso') then
-								local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
-								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset, targetMob.Torso.Position))
+								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
+								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
 							else
-								local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset))
-								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset, targetMob:GetPivot().Position))
+								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset))
+								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset, targetMob:GetPivot().Position))
 							end
 						end
 					end
