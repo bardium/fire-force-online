@@ -324,7 +324,7 @@ do
 					local playerGui = client:FindFirstChildOfClass('PlayerGui')
 					if playerGui:FindFirstChild('TrainingGui') then
 						local trainingGui = playerGui.TrainingGui
-						if trainingGui:FindFirstChild('KeyArea') and trainingGui.KeyArea:FindFirstChild('ClickButon') then
+						if trainingGui:FindFirstChild('KeyArea') and trainingGui.KeyArea:FindFirstChild('ClickButton') then
 							clickUiButton(trainingGui.KeyArea.ClickButton, true)
 							clickUiButton(trainingGui.KeyArea.ClickButton, false)
 						end
@@ -591,7 +591,7 @@ Groups.Training:AddSlider('PressDelay',			{ Text = 'Press delay', Min = 0, Max =
 
 addRichText(Groups.Training:AddLabel('<font color="#ff430a">Press delay less than 0.3 can make you miss buttons.</font>', true))
 
---Groups.Training:AddToggle('AutoClickStrength',	{ Text = 'Auto click strength button', Default = false, Tooltip = 'Auto click strength buttons for defense training.' } )
+Groups.Training:AddToggle('AutoClickStrength',	{ Text = 'Auto click strength button', Default = false, Tooltip = 'Auto click strength buttons for defense training.' } )
 
 local possibleFonts = {
 	'Arial',
