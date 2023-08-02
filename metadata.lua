@@ -1,5 +1,5 @@
 return {
-	version = '1.06',
+	version = '1.07',
 	updated = '8/02/2023',
-	message = 'multi-select target mobs'
+	message = 'auto tp to safe zone'
 }
