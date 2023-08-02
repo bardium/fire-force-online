@@ -77,6 +77,7 @@ end
 
 local runService = game:GetService('RunService')
 local virtualInputManager = game:GetService('VirtualInputManager')
+local Workspace = game:GetService('Workspace')
 
 do
 	if shared._unload then
@@ -271,16 +272,39 @@ do
 							targetMob = aliveNPC
 						end
 					end
-					if targetMob ~= nil and targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
-						if targetMob:FindFirstChild('Torso') then
-							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
-							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset, targetMob.Torso.Position))
-						else
-							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-							client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset))
-							client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset, targetMob:GetPivot().Position))
+					if targetMob == nil then
+						shared.tpToSafeZone = true
+					else
+						if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
+							shared.tpToSafeZone = false
+							if targetMob:FindFirstChild('Torso') then
+								local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
+								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset, targetMob.Torso.Position))
+							else
+								local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
+								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset))
+								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset, targetMob:GetPivot().Position))
+							end
 						end
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.AutoTeleportToSafeZone) and (Toggles.AutoTeleportToSafeZone.Value)) then
+				if shared.tpToSafeZone == true then
+					if client.Character ~= nil and typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(workspace) then
+						client.Character:PivotTo(CFrame.new(-4064, 1081, 2817))
 					end
 				end
 			end
@@ -423,7 +447,7 @@ Depbox:AddLabel('If you experience problems with the cat quests, please re-execu
 Depbox:SetupDependencies({
 	{ Toggles.CatQuests, true }
 });
-Groups.Main:AddToggle('KillAura', { Text = 'Kill aura', Default = false } )
+Groups.Main:AddToggle('KillAura',				{ Text = 'Kill aura', Default = false })
 
 local function GetAliveNPCsString()
 	local AliveList = {};
@@ -441,23 +465,17 @@ local function GetAliveNPCsString()
 	return AliveList;
 end;
 
-Groups.Main:AddToggle('TeleportToMobs', { Text = 'Loop teleport to target', Default = false } )
+Groups.Main:AddToggle('TeleportToMobs',				{ Text = 'Loop teleport to target mob', Default = false, Callback = function(Value) if Value == false then shared.tpToSafeZone = false end end } )
+Groups.Main:AddToggle('AutoTeleportToSafeZone',		{ Text = 'Auto teleport to safe zone', Default = false } )
 local aliveNPCs = GetAliveNPCsString()
 local mobNames = {'AdultCivilianNPC', 'Amaterasu', 'Backpacker', 'BerserkerInfernal', 'Brandon', 'CarThief', 'ChildCivilianNPC', 'ChildNPC', 'CrawlerInfernal', 'Curt', 'ExplodingInfernal', 'FireForceScientist', 'Girl', 'Inca', 'Infernal', 'Infernal Demon', 'Infernal Oni', 'Infernal2', 'LightningNPC', 'OldLady', 'OldMan', 'Parry Block', 'Parry No Block', 'Pedro', 'PurseNPC', 'PurseNPC', 'RealExaminer', 'Shadow', 'ShoNPC', 'ShoTest', 'SummoningInfernal', 'Thug1', 'ThugNPC', 'UnknownExaminer', 'WhiteCladDefender1', 'WhiteCladScout', 'WhiteCladTraitor1', 'WhiteCladTraitor2'}
-Groups.Main:AddDropdown('TargetMobs', {
-	Text = 'Target mobs',
-	AllowNull = false,
-	Compact = false,
-	Values = mobNames,
-	Multi = true,
-	Default = 1
-})
-Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = -3, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
-Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
-Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
+Groups.Main:AddDropdown('TargetMobs', 				{ Text = 'Target mobs', AllowNull = false, Compact = false, Values = mobNames, Multi = true, Default = 1 })
+Groups.Main:AddSlider('YOffset',					{ Text = 'Height offset', Min = -50, Max = 50, Default = -3, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
+Groups.Main:AddSlider('XOffset',					{ Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
+Groups.Main:AddSlider('ZOffset',					{ Text = 'Z position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
 
 Groups.Teleports = Tabs.Main:AddRightGroupbox('Teleports')
-Groups.Teleports:AddDropdown('AliveNPCTeleports', {
+Groups.Teleports:AddDropdown('AliveNPCTeleports',	{
 	Text = 'Teleport to mob',
 	AllowNull = false,
 	Compact = false,
@@ -644,7 +662,7 @@ local possibleFonts = {
 	'TitilliumWeb',
 	'Ubuntu',
 }
-Groups.ESP  = Tabs.Main:AddRightGroupbox('ESP')
+Groups.ESP = Tabs.Main:AddRightGroupbox('ESP')
 Groups.ESP:AddToggle('MobESP', 				{ Text = 'Mob esp', Default = true})
 Groups.ESP:AddSlider('MobESPTransparency',	{ Text = 'Mob esp transparency', Min = 0, Max = 1, Default = 0.5, Suffix = '%', Rounding = 3, Compact = true })
 Groups.ESP:AddDropdown('MobESPFont',		{
@@ -685,6 +703,7 @@ UI.ToggleKeybind = Options.MenuToggle
 themeManager:SetLibrary(UI)
 themeManager:ApplyToGroupbox(Tabs.UISettings:AddLeftGroupbox('Themes'))
 
+shared.tpToSafeZone = false
 UI:Notify(string.format('Loaded script in %.4f second(s)!', tick() - start), 3)
 if executor ~= 'Fluxus' and executor ~= 'Electron' and executor ~= 'Valyse' then
 	UI:Notify(string.format('You may experience problems with the script/UI because you are using %s', executor), 30)
