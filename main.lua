@@ -266,8 +266,13 @@ do
 			task.wait()
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
-					local targetMob = alive:FindFirstChild(tostring(Options.TargetMobs.Value))
-					if alive:FindFirstChild(tostring(Options.TargetMobs.Value)) and targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
+					local targetMob = nil
+					for _, aliveNPC in next, alive:GetChildren() do
+						if aliveNPC:GetAttribute('realName') == tostring(Options.TargetMobs.Value) and aliveNPC:IsA('Model') then
+							targetMob = aliveNPC
+						end
+					end
+					if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
 						if targetMob:FindFirstChild('Torso') then
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
@@ -433,7 +438,7 @@ local function GetAliveNPCsString()
 	return AliveList;
 end;
 
-Groups.Main:AddToggle('TeleportToMobs', { Text = 'Teleport to mobs', Default = false } )
+Groups.Main:AddToggle('TeleportToMobs', { Text = 'Loop teleport to target', Default = false } )
 local aliveNPCs = GetAliveNPCsString()
 Groups.Main:AddDropdown('TargetMobs', {
 	Text = 'Target mob',
@@ -442,9 +447,9 @@ Groups.Main:AddDropdown('TargetMobs', {
 	Values = aliveNPCs,
 	Default = aliveNPCs[1]
 })
-Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = 2, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
+Groups.Main:AddSlider('YOffset', { Text = 'Height offset', Min = -50, Max = 50, Default = -3, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
 Groups.Main:AddSlider('XOffset', { Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
-Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 10, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
+Groups.Main:AddSlider('ZOffset', { Text = 'Z position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
 
 Groups.Teleports = Tabs.Main:AddRightGroupbox('Teleports')
 Groups.Teleports:AddDropdown('AliveNPCTeleports', {
