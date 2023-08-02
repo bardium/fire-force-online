@@ -227,7 +227,7 @@ do
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
 					local closestMob = nil
 					for _, v in next, alive:GetChildren() do
-						if v:IsA('Model') and v:FindFirstChildOfClass('Humanoid') and not game.Players:FindFirstChild(v.Name) then
+						if v:IsA('Model') and v:FindFirstChildOfClass('Humanoid') and not v:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(v) then
 							if closestMob == nil then
 								closestMob = v
 							else
@@ -240,16 +240,14 @@ do
 
 					if typeof(closestMob) == 'Instance' then
 						local weapon = client.Character:FindFirstChild('FistCombat')
-						if client.Character:FindFirstChildOfClass('Tool') and client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript') then
+						if client.Character:FindFirstChildOfClass('Tool') and client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript') and events:FindFirstChild('CombatEvent') then
 							if client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript'):FindFirstChild('SS1') then
 								weapon = client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript'):FindFirstChild('SS1')
 							else
 								weapon = client.Character:FindFirstChildOfClass('Tool'):FindFirstChildOfClass('LocalScript')
 							end
 						end
-						if events:FindFirstChild('CombatEvent') then
-							events.CombatEvent:FireServer(1, weapon, closestMob:GetPivot(), true)
-						end
+						events.CombatEvent:FireServer(1, weapon, closestMob:GetPivot(), true)
 					end
 				end
 			end
@@ -272,14 +270,15 @@ do
 							targetMob = aliveNPC
 						end
 					end
-					if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
+					if targetMob ~= nil and targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
 						if targetMob:FindFirstChild('Torso') then
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset))
 							client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + offset, targetMob.Torso.Position))
 						else
 							local offset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
-							client.Character:PivotTo(targetMob:GetPivot() * offset)
+							client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset))
+							client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + offset, targetMob:GetPivot().Position))
 						end
 					end
 				end
@@ -344,7 +343,7 @@ do
 			task.wait()
 			if ((Toggles.MobESP) and (Toggles.MobESP.Value)) then
 				for _, mob in next, alive:GetChildren() do
-					if mob:IsA('Model') and mob:FindFirstChildOfClass('Humanoid') and not game.Players:FindFirstChild(mob.Name) and mob:FindFirstChild('Head') then
+					if mob:IsA('Model') and mob:FindFirstChildOfClass('Humanoid') and not mob:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(mob) and mob:FindFirstChild('Head') then
 						if not mob:FindFirstChild('boxESP') then
 							local boxESP = Instance.new('BoxHandleAdornment', mob)
 							boxESP.Name = 'boxESP'
@@ -489,7 +488,7 @@ local function GetLiveNPCsString()
 	local LiveList = {};
 
 	for i, liveNPC in next, liveNPCS:GetChildren() do
-		if liveNPC:IsA('Model') and not liveNPC:FindFirstChild('ClientInfo') and not game.Players:GetPlayerFromCharacter(liveNPC) then
+		if liveNPC:IsA('Model') then
 			local realName = '!' .. liveNPC.Name .. tostring(i)
 			if liveNPC.Name == 'PoliceMan' then
 				realName = '!Officer Jones'.. tostring(i)
