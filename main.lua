@@ -143,30 +143,21 @@ do
 
 					repeat
 						if typeof(catNPC) == 'Instance' then
-							client.Character:PivotTo(catNPC:GetPivot() * CFrame.new(0, -10, 0))
-							task.wait()
-							fireclickdetector(catNPC.ClickPart.ClickDetector)
-						else
-							UI:Notify('No cat quests found', 30)
-							Toggles.CatQuests:SetValue(false)
+								client.Character:PivotTo(catNPC:GetPivot() * CFrame.new(0, -10, 0))
+								task.wait()
+								fireclickdetector(catNPC.ClickPart.ClickDetector)
+							else
+								UI:Notify('No cat quests found', 30)
+								Toggles.CatQuests:SetValue(false)
+							end
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+							playerGui.TextGUI.Frame.Accept.Visible = true
 						end
-					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
-						playerGui.TextGUI.Frame.Accept.Visible = true
-					end
-					local buttonPressed = false
-					repeat
 						if playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') then
 							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
 							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
-							if sideQuest.Visible == true then
-								buttonPressed = true
-							end
-						else
-							buttonPressed = true
 						end
-						task.wait()
-					until (buttonPressed) or (not Toggles.CatQuests.Value)
+					until sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
 				end
 				
 				if sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') then
