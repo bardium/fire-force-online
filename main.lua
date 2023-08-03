@@ -520,7 +520,7 @@ Tabs.Quests = Window:AddTab('Quests')
 Tabs.UISettings = Window:AddTab('UI Settings')
 
 Groups.Main = Tabs.Main:AddLeftGroupbox('Main')
-Groups.Main:AddToggle('KillAura',				{ Text = 'Kill aura', Default = false })
+Groups.Main:AddToggle('KillAura',				{ Text = 'Kill aura', Default = false }):AddKeyPicker('AutoplayerBind', { Default = 'End', NoUI = true, SyncToggleState = true })
 
 local function GetAliveNPCsString()
 	local AliveList = {};
