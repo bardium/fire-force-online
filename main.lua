@@ -77,7 +77,7 @@ end
 
 local runService = game:GetService('RunService')
 local virtualInputManager = game:GetService('VirtualInputManager')
-local Workspace = game:GetService('Workspace')
+local httpRequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
 do
 	if shared._unload then
@@ -281,12 +281,22 @@ do
 							if (mobTPOffset - Vector3.zero).Magnitude < 0.001 then
 								mobTPOffset = Vector3.new(0.001, 0.001, 0.001)
 							end
-							if targetMob:FindFirstChild('Torso') then
-								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
-								client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
+							if (Options.SafeMode and Options.SafeMode.Value) and (client.Character:FindFirstChild('Stun') or client.Character:FindFirstChild('AttackStun') or client.Character:FindFirstChild('Knocked') or client.Character:FindFirstChild('HitCD') or targetMob:FindFirstChild('Punched')) then
+								shared.tpToSafeZone = true
 							else
-								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset))
-								client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset, targetMob:GetPivot().Position))
+								shared.tpToSafeZone = false
+								if targetMob:FindFirstChild('Torso') and targetMob:FindFirstChild('Head') then
+									if (Options.SafeMode and Options.SafeMode.Value) and (targetMob.Head:FindFirstChild('Flames')) then
+										shared.tpToSafeZone = true
+									else
+										shared.tpToSafeZone = false
+										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
+										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
+									end
+								else
+									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset))
+									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset, targetMob:GetPivot().Position))
+								end
 							end
 						end
 					end
@@ -415,16 +425,42 @@ do
 	end)
 end
 
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.BlackMarket) and (Toggles.BlackMarket.Value)) then
+				if liveNPCS:FindFirstChild('Business Man') then
+					pcall(function()
+						httpRequest({
+							Url = Options.WebhookURL.Value,
+							Body = game:GetService('HttpService'):JSONEncode({["content"] = Options.BlackMarketMessage.Value}),
+							Method = "POST",
+							Headers = {["content-type"] = "application/json"}
+						})
+					end)
+					pcall(function()
+						if ((Toggles.BlackMarketTeleport) and (Toggles.BlackMarketTeleport.Value)) then
+							client.Character:PivotTo(liveNPCS['Business Man']:GetPivot())
+						end
+					end)
+					repeat task.wait() until (not liveNPCS:FindFirstChild('Business Man')) or ((not Toggles.BlackMarket) or (not Toggles.BlackMarket.Value))
+				end
+			end
+		end
+	end)
+end
+
 local function addRichText(label)
 	label.TextLabel.RichText = true
 end
 
 local Window = UI:CreateWindow({
-	Title = string.format('fire force online - version %s | updated: %s', metadata.version, metadata.updated),
+	Title = string.format('fire force online - %s | updated: %s', metadata.version, metadata.updated),
 	AutoShow = true,
 
 	Center = true,
-	Size = UDim2.fromOffset(550, 567),
+	Size = UDim2.fromOffset(550, 627),
 })
 
 local Tabs = {}
@@ -467,11 +503,20 @@ local function GetAliveNPCsString()
 	return AliveList;
 end;
 
-Groups.Main:AddToggle('TeleportToMobs',				{ Text = 'Loop teleport to target mob', Default = false, Callback = function(Value) if Value == false then shared.tpToSafeZone = false end end } )
-Groups.Main:AddToggle('AutoTeleportToSafeZone',		{ Text = 'Auto teleport to safe zone', Default = false } )
+Groups.Main:AddToggle('TeleportToMobs',								{ Text = 'Loop teleport to target mob', Default = false, Callback = function(Value) if Value == false then shared.tpToSafeZone = false end end } )
+local teleportToSafeZoneDepBox = Groups.Main:AddDependencyBox();
+teleportToSafeZoneDepBox:AddToggle('AutoTeleportToSafeZone',		{ Text = 'Auto teleport to safe zone', Default = false } )
+teleportToSafeZoneDepBox:SetupDependencies({
+	{ Toggles.TeleportToMobs, true }
+});
+local safeModeDepBox = Groups.Main:AddDependencyBox();
+safeModeDepBox:AddToggle('SafeMode',								{ Text = 'Mob teleport safe mode', Default = false } )
+safeModeDepBox:SetupDependencies({
+	{ Toggles.AutoTeleportToSafeZone, true }
+});
 local aliveNPCs = GetAliveNPCsString()
 local mobNames = {'AdultCivilianNPC', 'Amaterasu', 'Backpacker', 'BerserkerInfernal', 'Brandon', 'CarThief', 'ChildCivilianNPC', 'ChildNPC', 'CrawlerInfernal', 'Curt', 'ExplodingInfernal', 'FireForceScientist', 'Girl', 'Inca', 'Infernal', 'Infernal Demon', 'Infernal Oni', 'Infernal2', 'LightningNPC', 'OldLady', 'OldMan', 'Parry Block', 'Parry No Block', 'Pedro', 'PurseNPC', 'PurseNPC', 'RealExaminer', 'Shadow', 'ShoNPC', 'ShoTest', 'SummoningInfernal', 'Thug1', 'ThugNPC', 'UnknownExaminer', 'WhiteCladDefender1', 'WhiteCladScout', 'WhiteCladTraitor1', 'WhiteCladTraitor2'}
-Groups.Main:AddDropdown('TargetMobs', 				{ Text = 'Target mobs', AllowNull = false, Compact = false, Values = mobNames, Multi = true, Default = 1 })
+Groups.Main:AddDropdown('TargetMobs', 				{ Text = 'Target mobs', AllowNull = false, Compact = false, Values = mobNames, Multi = true, Default = 16 })
 Groups.Main:AddSlider('YOffset',					{ Text = 'Height offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Height offset when teleporting to mobs.' })
 Groups.Main:AddSlider('XOffset',					{ Text = 'X position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'X offset when teleporting to mobs.' })
 Groups.Main:AddSlider('ZOffset',					{ Text = 'Z position offset', Min = -50, Max = 50, Default = 0, Suffix = ' studs', Rounding = 1, Compact = true, Tooltip = 'Z offset when teleporting to mobs.' })
@@ -681,6 +726,16 @@ Groups.ESP:AddButton('Refresh ESP', function()
 		end
 	end
 end)
+
+Groups.Webhooks = Tabs.Main:AddRightGroupbox('Webhooks')
+Groups.Webhooks:AddInput('WebhookURL', 					{ Text = 'Webhook URL', Tooltip = 'Webhooks are a utility used to automatically send messages, usueful when used in Discord.', Placeholder = 'webhook url here' } )
+Groups.Webhooks:AddToggle('BlackMarket', 				{ Text = 'Black market webhook' })
+local blackMarketDepBox = Groups.Webhooks:AddDependencyBox();
+blackMarketDepBox:AddInput('BlackMarketMessage', 			{ Text = 'Black market message', Tooltip = 'Message sent in webhook when black market is found.', Default = 'black market found!!! @' .. tostring(client.Name), Placeholder = 'black market message here!' } )
+blackMarketDepBox:AddToggle('BlackMarketTeleport',		{ Text = 'Black market auto teleport', Default = false } )
+blackMarketDepBox:SetupDependencies({
+	{ Toggles.BlackMarket, true }
+});
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
