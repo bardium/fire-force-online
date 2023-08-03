@@ -117,102 +117,6 @@ end
 
 do
 	local thread = task.spawn(function()
-		local playerGui = client:WaitForChild('PlayerGui')
-		local sideQuest = playerGui:WaitForChild('Status'):WaitForChild('SideQuest')
-		while true do
-			task.wait()
-			if ((Toggles.CatQuests) and (Toggles.CatQuests.Value)) then
-				if client:FindFirstChild('Stats') and client.Stats:FindFirstChild('PlayerRank') then
-					if client.Stats:FindFirstChild('PlayerRank').Value >= 10 then
-						UI:Notify('Your rank is too high to use cat quests', 5)
-						Toggles.CatQuests:SetValue(false)
-					end
-				end
-				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat') then
-					UI:Notify('You already have a quest. Cancel it or finish it before using cat quests.', 5)
-					Toggles.CatQuests:SetValue(false)
-				end
-				if sideQuest.Visible == false then
-					local catNPC = nil
-
-					for _, npc in next, alive:GetChildren() do
-						if npc:FindFirstChild('OfferedQuest') and npc.OfferedQuest.Value == 'CatMission' and npc:FindFirstChild('ClickPart') and npc.ClickPart:FindFirstChild('ClickDetector') then
-							catNPC = npc
-						end
-					end
-
-					repeat
-						if typeof(catNPC) == 'Instance' then
-								client.Character:PivotTo(catNPC:GetPivot() * CFrame.new(0, -10, 0))
-								task.wait()
-								fireclickdetector(catNPC.ClickPart.ClickDetector)
-							else
-								UI:Notify('No cat quests found', 30)
-								Toggles.CatQuests:SetValue(false)
-							end
-						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
-							playerGui.TextGUI.Frame.Accept.Visible = true
-						end
-						if playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') then
-							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
-							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
-						end
-					until sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-				end
-				
-				if sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') then
-					local targetCat = nil
-					UI:Notify('Looking for cat', 5)
-					repeat
-						for _, cat in next, ignoreParts:GetChildren() do
-							if cat.Name == 'Cat' and cat:FindFirstChild('ClickDetector') and sideQuest:WaitForChild('QuestName').Text ~= 'Return the cat back to the police station.. Or?' then
-								targetCat = cat
-							end
-						end
-						task.wait()
-					until typeof(targetCat) == 'Instance'
-					if typeof(targetCat) == 'Instance' then
-						repeat
-							client.Character:PivotTo(targetCat:GetPivot() * CFrame.new(0, -10, 0))
-							task.wait()
-							if targetCat:FindFirstChild('ClickDetector') then
-								fireclickdetector(targetCat.ClickDetector)
-							end
-						until (not targetCat:IsDescendantOf(workspace.IgnoreParts) or sideQuest:WaitForChild('QuestName').Text == 'Return the cat back to the police station.. Or?') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					end
-				end
-
-				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat known') then
-					repeat
-						if liveNPCS:FindFirstChild('Rick') then
-							client.Character:PivotTo(liveNPCS.Rick:GetPivot() * CFrame.new(0, -10, 0))
-							task.wait()
-							fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
-						end
-					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
-						playerGui.TextGUI.Frame.Accept.Visible = true
-					end
-					repeat
-						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
-							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
-						end
-						task.wait()
-						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
-							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
-						end
-					until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-				end
-			end
-		end
-	end)
-	table.insert(shared.callbacks, function()
-		pcall(task.cancel, thread)
-	end)
-end
-
-do
-	local thread = task.spawn(function()
 		while true do
 			task.wait()
 			if ((Toggles.KillAura) and (Toggles.KillAura.Value)) then
@@ -425,9 +329,9 @@ do
 					pcall(function()
 						httpRequest({
 							Url = Options.WebhookURL.Value,
-							Body = game:GetService('HttpService'):JSONEncode({["content"] = Options.BlackMarketMessage.Value}),
-							Method = "POST",
-							Headers = {["content-type"] = "application/json"}
+							Body = game:GetService('HttpService'):JSONEncode({['content'] = Options.BlackMarketMessage.Value}),
+							Method = 'POST',
+							Headers = {['content-type'] = 'application/json'}
 						})
 					end)
 					pcall(function()
@@ -439,6 +343,160 @@ do
 				end
 			end
 		end
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		local playerGui = client:WaitForChild('PlayerGui')
+		local sideQuest = playerGui:WaitForChild('Status'):WaitForChild('SideQuest')
+		while true do
+			task.wait()
+			if ((Toggles.CatQuests) and (Toggles.CatQuests.Value)) then
+				if client:FindFirstChild('Stats') and client.Stats:FindFirstChild('PlayerRank') then
+					if client.Stats:FindFirstChild('PlayerRank').Value >= 10 then
+						UI:Notify('Your rank is too high to use cat quests', 5)
+						Toggles.CatQuests:SetValue(false)
+					end
+				end
+				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat') then
+					UI:Notify('You already have a quest. Cancel it or finish it before using cat quests.', 5)
+					Toggles.CatQuests:SetValue(false)
+				end
+				if sideQuest.Visible == false then
+					local catNPC = nil
+
+					for _, npc in next, alive:GetChildren() do
+						if npc:FindFirstChild('OfferedQuest') and npc.OfferedQuest.Value == 'CatMission' and npc:FindFirstChild('ClickPart') and npc.ClickPart:FindFirstChild('ClickDetector') then
+							catNPC = npc
+						end
+					end
+
+					repeat
+						if typeof(catNPC) == 'Instance' then
+								client.Character:PivotTo(catNPC:GetPivot() * CFrame.new(0, -10, 0))
+								task.wait()
+								fireclickdetector(catNPC.ClickPart.ClickDetector)
+							else
+								UI:Notify('No cat quests found', 30)
+								Toggles.CatQuests:SetValue(false)
+							end
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+							playerGui.TextGUI.Frame.Accept.Visible = true
+						end
+						if playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept') then
+							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+						end
+					until sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+				end
+				
+				if sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') then
+					local targetCat = nil
+					UI:Notify('Looking for cat', 5)
+					repeat
+						for _, cat in next, ignoreParts:GetChildren() do
+							if cat.Name == 'Cat' and cat:FindFirstChild('ClickDetector') and sideQuest:WaitForChild('QuestName').Text ~= 'Return the cat back to the police station.. Or?' then
+								targetCat = cat
+							end
+						end
+						task.wait()
+					until typeof(targetCat) == 'Instance'
+					if typeof(targetCat) == 'Instance' then
+						repeat
+							client.Character:PivotTo(targetCat:GetPivot() * CFrame.new(0, -10, 0))
+							task.wait()
+							if targetCat:FindFirstChild('ClickDetector') then
+								fireclickdetector(targetCat.ClickDetector)
+							end
+						until (not targetCat:IsDescendantOf(workspace.IgnoreParts) or sideQuest:WaitForChild('QuestName').Text == 'Return the cat back to the police station.. Or?') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					end
+				end
+
+				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat known') then
+					repeat
+						if liveNPCS:FindFirstChild('Rick') then
+							client.Character:PivotTo(liveNPCS.Rick:GetPivot() * CFrame.new(0, -10, 0))
+							task.wait()
+							fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
+						end
+					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+						playerGui.TextGUI.Frame.Accept.Visible = true
+					end
+					repeat
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+						end
+						task.wait()
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+						end
+					until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.PhoneQuests) and (Toggles.PhoneQuests.Value)) then
+				local InsideParty = false
+				local PartyLeader = false
+				local DoingCityMission = false
+				local CanHePlay = true
+				
+				pcall(function()
+					for _, v in pairs(game.ReplicatedStorage.ActiveParties:GetDescendants()) do
+						if v:IsA('StringValue') then
+							if v.Value == client.Name then
+								InsideParty = true
+								if v.Name == 'PartyLeader' then
+									PartyLeader = true
+								end
+							else
+								InsideParty = false
+								PartyLeader = false
+							end
+						end
+					end
+					task.wait(1)
+					for _, v in pairs(game.Workspace.EventRegions.City:GetChildren()) do
+						if v:FindFirstChild('MissionOnGoing') then
+							if v.MissionOnGoing.Value == client.Name then
+								DoingCityMission = true
+							end
+						end
+					end
+					if InsideParty == true then
+						if DoingCityMission == false and PartyLeader == true and tostring(client.PlayerGui.TAG.TaggedBy.Value) == 'nil' and not client.Character:FindFirstChild('OnMission') then
+							CanHePlay = true
+						else
+							CanHePlay = false
+						end
+					else
+						if DoingCityMission == false and tostring(client.PlayerGui.TAG.TaggedBy.Value) == 'nil' and not client.Character:FindFirstChild('OnMission') then
+							CanHePlay = true
+						else
+							CanHePlay = false
+						end
+					end
+				end)
+
+				if CanHePlay == true and events:FindFirstChild('MissionHandlerServer') then
+					events.MissionHandlerServer:FireServer()
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
 	end)
 end
 
@@ -458,24 +516,10 @@ local Tabs = {}
 local Groups = {}
 
 Tabs.Main = Window:AddTab('Main')
+Tabs.Quests = Window:AddTab('Quests')
 Tabs.UISettings = Window:AddTab('UI Settings')
 
 Groups.Main = Tabs.Main:AddLeftGroupbox('Main')
-local oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
-Groups.Main:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = false, Callback = function(Value)
-	if Value == true then
-		oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
-	else
-		if typeof(client.Character) == 'Instance' and typeof(oldPivot) == 'CFrame' then
-			client.Character:PivotTo(oldPivot)
-		end
-	end
-end })
-local Depbox = Groups.Main:AddDependencyBox();
-Depbox:AddLabel('If you experience problems with the cat quests, please re-execute. Also make sure the UI isnt covering the dialog text UI.\n', true)
-Depbox:SetupDependencies({
-	{ Toggles.CatQuests, true }
-});
 Groups.Main:AddToggle('KillAura',				{ Text = 'Kill aura', Default = false })
 
 local function GetAliveNPCsString()
@@ -727,6 +771,32 @@ blackMarketDepBox:AddToggle('BlackMarketTeleport',		{ Text = 'Black market auto 
 blackMarketDepBox:SetupDependencies({
 	{ Toggles.BlackMarket, true }
 });
+
+Groups.Quests = Tabs.Quests:AddLeftGroupbox('Quests')
+local oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
+Groups.Quests:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = false, Callback = function(Value)
+	if Value == true then
+		oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
+	else
+		if typeof(client.Character) == 'Instance' and typeof(oldPivot) == 'CFrame' then
+			client.Character:PivotTo(oldPivot)
+		end
+	end
+end })
+local Depbox = Groups.Quests:AddDependencyBox();
+Depbox:AddLabel('If you experience problems with the cat quests, please re-execute. Also make sure the UI isnt covering the dialog text UI.', true)
+Depbox:SetupDependencies({
+	{ Toggles.CatQuests, true }
+});
+Groups.Quests:AddToggle('PhoneQuests', { Text = 'Auto ring phone', Default = false, Callback = function(Value)
+	if Value == true then
+		oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
+	else
+		if typeof(client.Character) == 'Instance' and typeof(oldPivot) == 'CFrame' then
+			client.Character:PivotTo(oldPivot)
+		end
+	end
+end })
 
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
 
