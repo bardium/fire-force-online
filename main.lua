@@ -532,7 +532,7 @@ do
 											if missionPoster:FindFirstChild('ClickDetector') then
 											fireclickdetector(missionPoster.ClickDetector)
 											end
-										until client.PlayerGui.Status.SideQuest.Visible == true or ((not Toggles.QuestBoard) and (not Toggles.QuestBoard.Value))
+										until client.PlayerGui.Status.SideQuest.Visible == true or ((not Toggles.QuestBoard) or (not Toggles.QuestBoard.Value))
 										shared.boardQuests = false
 										client.Character:PivotTo(oldPivot)
 									end
