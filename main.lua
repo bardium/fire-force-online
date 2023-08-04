@@ -176,19 +176,28 @@ do
 							if (mobTPOffset - Vector3.zero).Magnitude < 0.001 then
 								mobTPOffset = Vector3.new(0.001, 0.001, 0.001)
 							end
-							if (Options.SafeMode and Options.SafeMode.Value) and (client.Character:FindFirstChild('Stun') or client.Character:FindFirstChild('AttackStun') or client.Character:FindFirstChild('Knocked') or client.Character:FindFirstChild('HitCD') or targetMob:FindFirstChild('Punched')) then
-								shared.tpToSafeZone = true
-							else
-								shared.tpToSafeZone = false
+
+							if ((Toggles.SafeMode) and (Toggles.SafeMode.Value)) then
 								if targetMob:FindFirstChild('Torso') and targetMob:FindFirstChild('Head') then
-									if (Options.SafeMode and Options.SafeMode.Value) and (targetMob.Head:FindFirstChild('Flames')) then
+									if (client.Character:FindFirstChild('Stun') or client.Character:FindFirstChild('AttackStun') or client.Character:FindFirstChild('Knocked') or client.Character:FindFirstChild('HitCD') or targetMob:FindFirstChild('Punched') or (targetMob.Head:FindFirstChild('Flames'))) then
 										shared.tpToSafeZone = true
 									else
 										shared.tpToSafeZone = false
 										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
 										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
 									end
+								end
+							else
+								if targetMob:FindFirstChild('Torso') and targetMob:FindFirstChild('Head') and targetMob:FindFirstChildOfClass('Humanoid') then
+									if targetMob:FindFirstChildOfClass('Humanoid').Health > 0 then
+										shared.tpToSafeZone = false
+										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
+										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
+									else
+										shared.tpToSafeZone = true
+									end
 								else
+									shared.tpToSafeZone = false
 									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset))
 									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset, targetMob:GetPivot().Position))
 								end
