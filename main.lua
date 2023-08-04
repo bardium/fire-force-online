@@ -170,7 +170,7 @@ do
 					if targetMob == nil then
 						shared.tpToSafeZone = true
 					else
-						if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' then
+						if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' and not shared.boardQuests then
 							shared.tpToSafeZone = false
 							local mobTPOffset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 							if (mobTPOffset - Vector3.zero).Magnitude < 0.001 then
@@ -233,9 +233,15 @@ do
 						local KeyToPress = playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value
 						local TrainingGUI = playerGui.TrainingGui.DefenseTraining
 						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
-				
-						events.TrainingEvent:FireServer('Defense', keyToPress)
-						task.wait(Options.PressDelay.Value)
+						pcall(function()
+							virtualInputManager:SendKeyEvent(true, Enum.KeyCode[tostring(keyToPress)], false, nil)
+							virtualInputManager:SendKeyEvent(false, Enum.KeyCode[tostring(keyToPress)], false, nil)
+						end)
+						local frames = 0
+						repeat
+							task.wait()
+							frames += 1
+						until KeyToPress ~= playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value or ((not Toggles.AutoKeysDefense) or (not Toggles.AutoKeysDefense.Value)) or frames > 50
 					end
 				end
 			end
@@ -492,6 +498,50 @@ do
 				if CanHePlay == true and events:FindFirstChild('MissionHandlerServer') then
 					events.MissionHandlerServer:FireServer()
 				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+local questBoardQuests = {
+    ['Defeat civilians'] = 'KillCivilians',
+    ['Defeat fire force members'] = 'DefeatFF',
+    ['Defeat infernals'] = 'KillInfernals',
+    ['Defeat white clad members'] = 'DefeatWC'
+}
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.QuestBoard) and (Toggles.QuestBoard.Value)) then
+				pcall(function()
+					if client.PlayerGui.Status.SideQuest.Visible == false then
+						local oldPivot = client.Character:GetPivot()
+						for _, missionPoster in next, ignoreParts:GetChildren() do
+							if missionPoster.Name == 'MissionPoster' and missionPoster:FindFirstChild('OfferedQuest') then
+								pcall(function()
+									if client.PlayerGui.Status.SideQuest.Visible == false and (tostring(missionPoster.OfferedQuest.Value) == tostring(questBoardQuests[tostring(Options.QuestBoardQuest.Value)])) then
+										repeat
+											shared.boardQuests = true
+											client.Character:PivotTo(missionPoster.CFrame * CFrame.new(0, -12, 0))
+											task.wait()
+											if missionPoster:FindFirstChild('ClickDetector') then
+											fireclickdetector(missionPoster.ClickDetector)
+											end
+										until client.PlayerGui.Status.SideQuest.Visible == true or ((not Toggles.QuestBoard) and (not Toggles.QuestBoard.Value))
+										shared.boardQuests = false
+										client.Character:PivotTo(oldPivot)
+									end
+									task.wait()
+								end)
+							end
+						end
+					end
+				end)
 			end
 		end
 	end)
@@ -856,11 +906,7 @@ Groups.Teleports:AddButton('Refresh markers', function()
 end)
 
 Groups.Training = Tabs.Main:AddLeftGroupbox('Training')
-Groups.Training:AddToggle('AutoKeysDefense',	{ Text = 'Auto press keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
-Groups.Training:AddSlider('PressDelay',			{ Text = 'Press delay', Min = 0, Max = 1, Default = 0.3, Suffix = 's', Rounding = 3, Compact = true, Tooltip = 'Delay for pressing keys in defense training.' })
-
-addRichText(Groups.Training:AddLabel('<font color="#ff430a">Press delay less than 0.3 can make you miss buttons.</font>', true))
-
+Groups.Training:AddToggle('AutoKeysDefense',	{ Text = 'Auto press defense keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
 Groups.Training:AddToggle('AutoClickStrength',	{ Text = 'Auto click strength button', Default = false, Tooltip = 'Auto click strength buttons for defense training.' } )
 
 local possibleFonts = {
@@ -963,6 +1009,8 @@ Groups.Quests:AddToggle('PhoneQuests', { Text = 'Auto ring phone', Default = fal
 		end
 	end
 end })
+Groups.Quests:AddToggle('QuestBoard', { Text = 'Auto quest board', Default = false })
+Groups.Quests:AddDropdown('QuestBoardQuest', { Text = 'Quest board quests', AllowNull = false, Compact = false, Values = {'Defeat civilians', 'Defeat fire force members', 'Defeat infernals', 'Defeat white clad members'}, Multi = false, Default = 16 })
 
 Groups.Configs = Tabs.UISettings:AddRightGroupbox('Configs')
 Groups.Credits = Tabs.UISettings:AddRightGroupbox('Credits')
@@ -1047,6 +1095,7 @@ themeManager:SetLibrary(UI)
 themeManager:ApplyToGroupbox(Tabs.UISettings:AddLeftGroupbox('Themes'))
 
 shared.tpToSafeZone = false
+shared.boardQuests = false
 UI:Notify(string.format('Loaded script in %.4f second(s)!', tick() - start), 3)
 if executor ~= 'Fluxus' and executor ~= 'Electron' and executor ~= 'Valyse' then
 	UI:Notify(string.format('You may experience problems with the script/UI because you are using %s', executor), 30)
