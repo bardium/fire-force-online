@@ -1,5 +1,5 @@
 return {
-	version = '1.08',
+	version = '1.09',
 	updated = '8/03/2023',
-	message = 'black market webhook + bug fixes'
+	message = 'configs + save system'
 }
