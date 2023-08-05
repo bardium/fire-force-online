@@ -3,7 +3,7 @@ A script using the Linoria UI Library for [Fire Force Online](https://www.roblox
 
 ## Reporting bugs
 You can open up an issue on the GitHub or you may message me on v3rmillion / Discord.<br>
-https://iscord.gg/hSm6DyF6X7
+https://discord.gg/hSm6DyF6X7
 
 If you are reporting any issues, please include the following information:
 
