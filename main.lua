@@ -251,10 +251,13 @@ do
 						local KeyToPress = playerGui.TrainingGui.DefenseTraining.CurrentKeyToPress.Value
 						local TrainingGUI = playerGui.TrainingGui.DefenseTraining
 						local keyToPress = TrainingGUI:FindFirstChild(KeyToPress).Value
+						--[[
 						pcall(function()
 							virtualInputManager:SendKeyEvent(true, Enum.KeyCode[tostring(keyToPress)], false, nil)
 							virtualInputManager:SendKeyEvent(false, Enum.KeyCode[tostring(keyToPress)], false, nil)
 						end)
+						]]
+						events.TrainingEvent:FireServer('Defense', keyToPress)
 						local frames = 0
 						repeat
 							task.wait()
