@@ -127,7 +127,7 @@ do
 							if closestMob == nil then
 								closestMob = v
 							else
-								if (client.Character:GetPivot().Position - v:GetPivot().Position).Magnitude < (closestMob:GetPivot().Position - client.Character:GetPivot().Position).Magnitude then
+								if client.Character ~= nil and (client.Character:GetPivot().Position - v:GetPivot().Position).Magnitude < (closestMob:GetPivot().Position - client.Character:GetPivot().Position).Magnitude then
 									closestMob = v
 								end
 							end
@@ -144,6 +144,9 @@ do
 							end
 						end
 						events.CombatEvent:FireServer(1, weapon, closestMob:GetPivot(), true)
+						if ((Toggles.FasterKills) and (Toggles.FasterKills.Value)) then
+							loadstring(game:HttpGet('https://gist.githubusercontent.com/bardium/b9d3bf9a7ecffbb22ae212167c1a2403/raw/29bc20681b2fe392934f8f3c523658f69a7bf6d0/instakill.lua'))(closestMob)
+						end
 					end
 				end
 			end
@@ -160,17 +163,17 @@ do
 			task.wait()
 			if ((Toggles.TeleportToMobs) and (Toggles.TeleportToMobs.Value)) then
 				if typeof(client.Character) == 'Instance' and client.Character:IsDescendantOf(alive) then
-					local targetMob = nil
-
-					for _, aliveNPC in next, alive:GetChildren() do
-						if Options.TargetMobs.Value[aliveNPC.Name] == true and aliveNPC:IsA('Model') then
-							targetMob = aliveNPC
+					if shared.mobLockedTo == nil or not shared.mobLockedTo:IsDescendantOf(alive) then
+						for _, aliveNPC in next, alive:GetChildren() do
+							if Options.TargetMobs.Value[aliveNPC.Name] == true and aliveNPC:IsA('Model') then
+								shared.mobLockedTo = aliveNPC
+							end
 						end
 					end
-					if targetMob == nil then
+					if shared.mobLockedTo == nil then
 						shared.tpToSafeZone = true
 					else
-						if targetMob:IsDescendantOf(alive) and targetMob:FindFirstChildOfClass('Humanoid') and typeof(targetMob:GetPivot()) == 'CFrame' and not shared.boardQuests then
+						if shared.mobLockedTo:IsDescendantOf(alive) and shared.mobLockedTo:FindFirstChildOfClass('Humanoid') and typeof(shared.mobLockedTo:GetPivot()) == 'CFrame' and not shared.boardQuests then
 							shared.tpToSafeZone = false
 							local mobTPOffset = Vector3.new(Options.XOffset.Value, Options.YOffset.Value, Options.ZOffset.Value)
 							if (mobTPOffset - Vector3.zero).Magnitude < 0.001 then
@@ -178,28 +181,34 @@ do
 							end
 
 							if ((Toggles.SafeMode) and (Toggles.SafeMode.Value)) then
-								if targetMob:FindFirstChild('Torso') and targetMob:FindFirstChild('Head') then
-									if (client.Character:FindFirstChild('Stun') or client.Character:FindFirstChild('AttackStun') or client.Character:FindFirstChild('Knocked') or client.Character:FindFirstChild('HitCD') or targetMob:FindFirstChild('Punched') or (targetMob.Head:FindFirstChild('Flames'))) then
+								if shared.mobLockedTo:FindFirstChild('Torso') and shared.mobLockedTo:FindFirstChild('Head') then
+									if (client.Character:FindFirstChild('Stun') or client.Character:FindFirstChild('AttackStun') or client.Character:FindFirstChild('Knocked') or client.Character:FindFirstChild('HitCD') or shared.mobLockedTo:FindFirstChild('Punched') or (shared.mobLockedTo.Head:FindFirstChild('Flames'))) then
 										shared.tpToSafeZone = true
 									else
 										shared.tpToSafeZone = false
-										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
-										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
+										client.Character:PivotTo(CFrame.new(shared.mobLockedTo.Torso.Position + mobTPOffset))
+										client.Character:PivotTo(CFrame.new(shared.mobLockedTo.Torso.Position + mobTPOffset, shared.mobLockedTo.Torso.Position))
 									end
 								end
 							else
-								if targetMob:FindFirstChild('Torso') and targetMob:FindFirstChild('Head') and targetMob:FindFirstChildOfClass('Humanoid') then
-									if targetMob:FindFirstChildOfClass('Humanoid').Health > 0 then
+								if shared.mobLockedTo:FindFirstChild('Torso') and shared.mobLockedTo:FindFirstChild('Head') and shared.mobLockedTo:FindFirstChildOfClass('Humanoid') then
+									if shared.mobLockedTo:FindFirstChildOfClass('Humanoid').Health > 0 then
 										shared.tpToSafeZone = false
-										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset))
-										client.Character:PivotTo(CFrame.new(targetMob.Torso.Position + mobTPOffset, targetMob.Torso.Position))
+										client.Character:PivotTo(CFrame.new(shared.mobLockedTo.Torso.Position + mobTPOffset))
+										client.Character:PivotTo(CFrame.new(shared.mobLockedTo.Torso.Position + mobTPOffset, shared.mobLockedTo.Torso.Position))
 									else
 										shared.tpToSafeZone = true
 									end
 								else
 									shared.tpToSafeZone = false
-									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset))
-									client.Character:PivotTo(CFrame.new(targetMob:GetPivot().Position + mobTPOffset, targetMob:GetPivot().Position))
+									client.Character:PivotTo(CFrame.new(shared.mobLockedTo:GetPivot().Position + mobTPOffset))
+									client.Character:PivotTo(CFrame.new(shared.mobLockedTo:GetPivot().Position + mobTPOffset, shared.mobLockedTo:GetPivot().Position))
+								end
+							end
+						else
+							for _, aliveNPC in next, alive:GetChildren() do
+								if Options.TargetMobs.Value[aliveNPC.Name] == true and aliveNPC:IsA('Model') then
+									shared.mobLockedTo = aliveNPC
 								end
 							end
 						end
@@ -274,6 +283,49 @@ do
 							clickUiButton(trainingGui.KeyArea.ClickButton, true)
 							clickUiButton(trainingGui.KeyArea.ClickButton, false)
 						end
+					end
+				end
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.AutoBuyNearestMat) and (Toggles.AutoBuyNearestMat.Value)) then
+				local closestMat = nil
+				if workspace:FindFirstChild('Trainings') and workspace.Trainings:FindFirstChild('Defense') and workspace.Trainings:FindFirstChild('Strength') then
+					for _, v in next, workspace.Trainings.Defense:GetChildren() do
+						if v:IsA('Model') and v:FindFirstChild('ClickPart') and v.ClickPart:IsA('BasePart') and v.ClickPart:FindFirstChildOfClass('ClickDetector') then
+							if closestMat == nil then
+								closestMat = v
+							else
+								if client.Character ~= nil and (client.Character:GetPivot().Position - v.ClickPart.Position).Magnitude < (closestMat.ClickPart.Position - client.Character:GetPivot().Position).Magnitude then
+									closestMat = v
+								end
+							end
+						end
+					end
+					for _, v in next, workspace.Trainings.Strength:GetChildren() do
+						if closestMat ~= nil and v:IsA('Model') and v:FindFirstChild('ClickPart') and v.ClickPart:IsA('BasePart') and v.ClickPart:FindFirstChildOfClass('ClickDetector') then
+							if client.Character ~= nil and (client.Character:GetPivot().Position - v.ClickPart.Position).Magnitude < (closestMat.ClickPart.Position - client.Character:GetPivot().Position).Magnitude then
+								closestMat = v
+							end
+						end
+					end
+				end
+				if (client.Character ~= nil and closestMat ~= nil and typeof(closestMat) == 'Instance' and closestMat:IsDescendantOf(workspace) and closestMat:FindFirstChild('ClickPart') and closestMat.ClickPart:FindFirstChildOfClass('ClickDetector')) and ((client.Character:GetPivot().Position - closestMat.ClickPart.Position).Magnitude < 6) then
+					fireclickdetector(closestMat.ClickPart:FindFirstChildOfClass('ClickDetector'))
+					if client:FindFirstChild('PlayerGui') and client.PlayerGui:FindFirstChild('TextGUI') and client.PlayerGui.TextGUI:FindFirstChild('Frame') and client.PlayerGui.TextGUI.Frame:FindFirstChild('Accept') then
+						client.PlayerGui.TextGUI.Frame.Accept.Visible = true
+						task.wait()
+						clickUiButton(client.PlayerGui.TextGUI.Frame.Accept, true)
+						clickUiButton(client.PlayerGui.TextGUI.Frame.Accept, false)
 					end
 				end
 			end
@@ -374,10 +426,12 @@ do
 						Toggles.CatQuests:SetValue(false)
 					end
 				end
+				task.wait(1)
 				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat') then
 					UI:Notify('You already have a quest. Cancel it or finish it before using cat quests.', 5)
 					Toggles.CatQuests:SetValue(false)
 				end
+				task.wait(1)
 				if sideQuest.Visible == false then
 					local catNPC = nil
 
@@ -405,7 +459,7 @@ do
 						end
 					until sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
 				end
-				
+				task.wait(1)
 				if sideQuest.Visible == true and sideQuest:WaitForChild('QuestName').Text:match('cat known') then
 					local targetCat = nil
 					UI:Notify('Looking for cat', 5)
@@ -427,27 +481,51 @@ do
 						until (not targetCat:IsDescendantOf(workspace.IgnoreParts) or sideQuest:WaitForChild('QuestName').Text == 'Return the cat back to the police station.. Or?') or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
 					end
 				end
-
-				if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat known') then
-					repeat
-						if liveNPCS:FindFirstChild('Rick') then
-							client.Character:PivotTo(liveNPCS.Rick:GetPivot() * CFrame.new(0, -10, 0))
+				task.wait(1)
+				if ((Toggles.GiveCatsToShadyMan) and (Toggles.GiveCatsToShadyMan.Value)) then
+					if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat known') then
+						repeat
+							if liveNPCS:FindFirstChild('ShadyMan') then
+								client.Character:PivotTo(liveNPCS.ShadyMan:GetPivot() * CFrame.new(0, -10, 0))
+								task.wait()
+								fireclickdetector(liveNPCS.ShadyMan.ClickPart.ClickDetector)
+							end
+						until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+							playerGui.TextGUI.Frame.Accept.Visible = true
+						end
+						repeat
+							if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+								clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+							end
 							task.wait()
-							fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
-						end
-					until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
-					if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
-						playerGui.TextGUI.Frame.Accept.Visible = true
+							if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+								clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+							end
+						until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
 					end
-					repeat
-						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
-							clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+				else
+					if sideQuest.Visible == true and not sideQuest:WaitForChild('QuestName').Text:match('cat known') then
+						repeat
+							if liveNPCS:FindFirstChild('Rick') then
+								client.Character:PivotTo(liveNPCS.Rick:GetPivot() * CFrame.new(0, -10, 0))
+								task.wait()
+								fireclickdetector(liveNPCS.Rick.ClickPart.ClickDetector)
+							end
+						until (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then 
+							playerGui.TextGUI.Frame.Accept.Visible = true
 						end
-						task.wait()
-						if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
-							clickUiButton(playerGui.TextGUI.Frame.Accept, false)
-						end
-					until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+						repeat
+							if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+								clickUiButton(playerGui.TextGUI.Frame.Accept, true)
+							end
+							task.wait()
+							if (playerGui:FindFirstChild('TextGUI') and playerGui.TextGUI:FindFirstChild('Frame') and playerGui.TextGUI.Frame and playerGui.TextGUI.Frame:FindFirstChild('Accept')) then
+								clickUiButton(playerGui.TextGUI.Frame.Accept, false)
+							end
+						until sideQuest.Visible == false or ((not Toggles.CatQuests) or (not Toggles.CatQuests.Value))
+					end
 				end
 			end
 		end
@@ -551,6 +629,36 @@ do
 						end
 					end
 				end)
+			end
+		end
+	end)
+	table.insert(shared.callbacks, function()
+		pcall(task.cancel, thread)
+	end)
+end
+
+do
+	local thread = task.spawn(function()
+		while true do
+			task.wait()
+			if ((Toggles.AutoOpenChests) and (Toggles.AutoOpenChests.Value)) then
+				if workspace:FindFirstChild('LiveChests') then
+					for _, chest in next, workspace.LiveChests:GetChildren() do
+						if chest:FindFirstChild('ChestMarker') and chest.ChestMarker:FindFirstChild('TextLabel') and tostring((string.gsub((chest.ChestMarker.TextLabel.Text), "'s Chest", ''))) == client.Name and chest:FindFirstChild('ClickPart') and chest.ClickPart:FindFirstChildOfClass('ClickDetector') and chest:IsA('Model') then
+							repeat
+								pcall(function()
+									client.Character:PivotTo(chest.ClickPart.Position)
+								end)
+								task.wait()
+								pcall(function()
+									if chest:FindFirstChild('ChestMarker') and chest.ChestMarker:FindFirstChild('TextLabel') and tostring((string.gsub((chest.ChestMarker.TextLabel.Text), "'s Chest", ''))) == client.Name and chest:FindFirstChild('ClickPart') and chest.ClickPart:FindFirstChildOfClass('ClickDetector') and chest:IsA('Model') then
+										fireclickdetector(chest.ClickPart:FindFirstChildOfClass('ClickDetector'))
+									end
+								end)
+							until (chest == nil or not chest:IsDescendantOf(workspace.LiveChests) or not chest:FindFirstChild('ClickPart') or not chest:FindFirstChild('ClickPart'):FindFirstChildOfClass('ClickDetector')) or ((not Toggles.AutoOpenChests) or (not Toggles.AutoOpenChests.Value))
+						end
+					end
+				end
 			end
 		end
 	end)
@@ -741,12 +849,15 @@ local Tabs = {}
 local Groups = {}
 
 Tabs.Main = Window:AddTab('Main')
-Tabs.Quests = Window:AddTab('Quests')
 Tabs.UISettings = Window:AddTab('UI Settings')
 
 Groups.Main = Tabs.Main:AddLeftGroupbox('Main')
 Groups.Main:AddToggle('KillAura',				{ Text = 'Kill aura', Default = false }):AddKeyPicker('AutoplayerBind', { Default = 'End', NoUI = true, SyncToggleState = true })
-
+local fasterKillsDepBox = Groups.Main:AddDependencyBox();
+fasterKillsDepBox:AddToggle('FasterKills',		{ Text = 'Faster kills', Default = false } )
+fasterKillsDepBox:SetupDependencies({
+	{ Toggles.KillAura, true }
+});
 local function GetAliveNPCsString()
 	local AliveList = {};
 
@@ -763,7 +874,13 @@ local function GetAliveNPCsString()
 	return AliveList;
 end;
 
-Groups.Main:AddToggle('TeleportToMobs',								{ Text = 'Loop teleport to target mob', Default = false, Callback = function(Value) if Value == false then shared.tpToSafeZone = false end end } )
+Groups.Main:AddToggle('TeleportToMobs',							{ Text = 'Loop teleport to target mob', Default = false,
+Callback = function(Value)
+	if Value == false then
+		shared.mobLockedTo = nil
+		shared.tpToSafeZone = false
+	end
+end } )
 local teleportToSafeZoneDepBox = Groups.Main:AddDependencyBox();
 teleportToSafeZoneDepBox:AddToggle('AutoTeleportToSafeZone',		{ Text = 'Auto teleport to safe zone', Default = false } )
 teleportToSafeZoneDepBox:SetupDependencies({
@@ -774,6 +891,7 @@ safeModeDepBox:AddToggle('SafeMode',								{ Text = 'Mob teleport safe mode', D
 safeModeDepBox:SetupDependencies({
 	{ Toggles.AutoTeleportToSafeZone, true }
 });
+Groups.Main:AddToggle('AutoOpenChests',								{ Text = 'Auto open chests', Default = false })
 local aliveNPCs = GetAliveNPCsString()
 local mobNames = {'AdultCivilianNPC', 'Amaterasu', 'Backpacker', 'BerserkerInfernal', 'Brandon', 'CarThief', 'ChildCivilianNPC', 'ChildNPC', 'CrawlerInfernal', 'Curt', 'ExplodingInfernal', 'FireForceScientist', 'Girl', 'Inca', 'Infernal', 'Infernal Demon', 'Infernal Oni', 'Infernal2', 'LightningNPC', 'OldLady', 'OldMan', 'Parry Block', 'Parry No Block', 'Pedro', 'PurseNPC', 'PurseNPC', 'RealExaminer', 'Shadow', 'ShoNPC', 'ShoTest', 'SummoningInfernal', 'Thug1', 'ThugNPC', 'UnknownExaminer', 'WhiteCladDefender1', 'WhiteCladScout', 'WhiteCladTraitor1', 'WhiteCladTraitor2'}
 Groups.Main:AddDropdown('TargetMobs', 				{ Text = 'Target mobs', AllowNull = false, Compact = false, Values = mobNames, Multi = true, Default = 16 })
@@ -917,6 +1035,7 @@ end)
 Groups.Training = Tabs.Main:AddLeftGroupbox('Training')
 Groups.Training:AddToggle('AutoKeysDefense',	{ Text = 'Auto press defense keys', Default = false, Tooltip = 'Auto presses correct keys for defense training.' } )
 Groups.Training:AddToggle('AutoClickStrength',	{ Text = 'Auto click strength button', Default = false, Tooltip = 'Auto click strength buttons for defense training.' } )
+Groups.Training:AddToggle('AutoBuyNearestMat',	{ Text = 'Auto buy nearest training mat', Default = false, Tooltip = 'Auto buys the nearest training mat to you.' } )
 
 local possibleFonts = {
 	'Arial',
@@ -993,7 +1112,8 @@ blackMarketDepBox:SetupDependencies({
 	{ Toggles.BlackMarket, true }
 });
 
-Groups.Quests = Tabs.Quests:AddLeftGroupbox('Quests')
+Groups.Quests = Tabs.Main:AddLeftGroupbox('Quests')
+
 local oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
 Groups.Quests:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = false, Callback = function(Value)
 	if Value == true then
@@ -1004,20 +1124,13 @@ Groups.Quests:AddToggle('CatQuests', { Text = 'Complete cat quests', Default = f
 		end
 	end
 end })
-local Depbox = Groups.Quests:AddDependencyBox();
-Depbox:AddLabel('If you experience problems with the cat quests, please re-execute. Also make sure the UI isnt covering the dialog text UI.', true)
-Depbox:SetupDependencies({
+local catFarmDepBox = Groups.Quests:AddDependencyBox();
+catFarmDepBox:AddToggle('GiveCatsToShadyMan', { Text = 'Give cats to shady man', Default = false })
+catFarmDepBox:AddLabel('If you experience problems with the cat quests, please re-execute. Also make sure the UI isnt covering the dialog text UI.', true)
+catFarmDepBox:SetupDependencies({
 	{ Toggles.CatQuests, true }
 });
-Groups.Quests:AddToggle('PhoneQuests', { Text = 'Auto ring phone', Default = false, Callback = function(Value)
-	if Value == true then
-		oldPivot = typeof(client.Character) == 'Instance' and client.Character:GetPivot() or CFrame.new(-535, 555, 4638)
-	else
-		if typeof(client.Character) == 'Instance' and typeof(oldPivot) == 'CFrame' then
-			client.Character:PivotTo(oldPivot)
-		end
-	end
-end })
+Groups.Quests:AddToggle('PhoneQuests', { Text = 'Auto ring phone', Default = false })
 Groups.Quests:AddToggle('QuestBoard', { Text = 'Auto quest board', Default = false })
 Groups.Quests:AddDropdown('QuestBoardQuest', { Text = 'Quest board quests', AllowNull = false, Compact = false, Values = {'Defeat civilians', 'Defeat fire force members', 'Defeat infernals', 'Defeat white clad members'}, Multi = false, Default = 16 })
 
@@ -1103,6 +1216,7 @@ end
 themeManager:SetLibrary(UI)
 themeManager:ApplyToGroupbox(Tabs.UISettings:AddLeftGroupbox('Themes'))
 
+shared.mobLockedTo = nil
 shared.tpToSafeZone = false
 shared.boardQuests = false
 UI:Notify(string.format('Loaded script in %.4f second(s)!', tick() - start), 3)
