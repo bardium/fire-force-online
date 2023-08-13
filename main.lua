@@ -1,4 +1,6 @@
 --[[
+SCRIPT NO LONGER MAINTAINED
+
 CREDITS:
 UI Library: Inori & wally
 HUGE HELP WITH SCRIPT: DeityVarn
