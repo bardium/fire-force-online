@@ -2,7 +2,7 @@
 SCRIPT NO LONGER MAINTAINED
 
 CREDITS:
-UI Library: Inori & wally
+UI Library: Inori & wallya
 HUGE HELP WITH SCRIPT: DeityVarn
 Script: goosebetter
 ]]
@@ -843,7 +843,7 @@ local SaveManager = {} do
 end
 
 local Window = UI:CreateWindow({
-	Title = string.format('fire force online - %s | updated: %s', metadata.version, metadata.updated),
+	Title = string.format('[PATCHED] fire force online - %s | updated: %s', metadata.version, metadata.updated),
 	AutoShow = true,
 
 	Center = true,
