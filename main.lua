@@ -2,7 +2,7 @@
 SCRIPT NO LONGER MAINTAINED
 
 CREDITS:
-UI Library: Inori & wallya
+UI Library: Inori & wally
 HUGE HELP WITH SCRIPT: DeityVarn
 Script: goosebetter
 ]]
